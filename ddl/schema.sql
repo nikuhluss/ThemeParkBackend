@@ -18,7 +18,9 @@
 -- --------------------------------
 -- Section that focuses on users, details, and customers.
 
-CREATE TABLE theme_park.users (
+SET search_path TO theme_park;
+
+CREATE TABLE users (
     ID varchar(32) NOT NULL,
     username varchar(32) NOT NULL,
     email varchar(64) NOT NULL,
@@ -30,14 +32,14 @@ CREATE TABLE theme_park.users (
     UNIQUE (email)
 );
 
-CREATE TABLE theme_park.genders (
+CREATE TABLE genders (
     ID varchar(32) NOT NULL,
     gender varchar(16) NOT NULL,
     PRIMARY KEY (ID),
     UNIQUE (gender)
 );
 
-CREATE TABLE theme_park.user_details (
+CREATE TABLE user_details (
     user_ID varchar(32) NOT NULL,
     gender_ID varchar(32),
     first_name varchar(32),
@@ -49,7 +51,7 @@ CREATE TABLE theme_park.user_details (
     FOREIGN KEY (user_ID) REFERENCES users (ID)
 );
 
-CREATE TABLE theme_park.customers (
+CREATE TABLE customers (
     user_ID varchar(32) NOT NULL,
     PRIMARY KEY (user_ID),
     FOREIGN KEY (user_ID) REFERENCES users (ID)
@@ -59,19 +61,19 @@ CREATE TABLE theme_park.customers (
 -- --------------------------------
 -- Section that focuses on picture collections.
 
-CREATE TABLE theme_park.pictures (
+CREATE TABLE pictures (
     ID varchar(32) NOT NULL,
     format varchar(16) NOT NULL,
     blob bytea NOT NULL,
     PRIMARY KEY (ID)
 );
 
-CREATE TABLE theme_park.picture_collections (
+CREATE TABLE picture_collections (
     ID varchar(32) NOT NULL,
     PRIMARY KEY (ID)
 );
 
-CREATE TABLE theme_park.pictures_in_collection (
+CREATE TABLE pictures_in_collection (
     picture_ID varchar(32) NOT NULL,
     collection_ID varchar(32) NOT NULL,
     picture_sequence integer,
@@ -84,13 +86,13 @@ CREATE TABLE theme_park.pictures_in_collection (
 -- --------------------------------
 -- Section that focuses on the shops.
 
-CREATE TABLE theme_park.shop_types (
+CREATE TABLE shop_types (
     ID varchar(32) NOT NULL,
     shop_type varchar(32) NOT NULL,
     PRIMARY KEY (ID)
 );
 
-CREATE TABLE theme_park.shops (
+CREATE TABLE shops (
     ID varchar(32) NOT NULL,
     shop_type_ID varchar(32) NOT NULL,
     picture_collection_ID varchar(32),
@@ -101,7 +103,7 @@ CREATE TABLE theme_park.shops (
     FOREIGN KEY (picture_collection_ID) REFERENCES picture_collections (ID)
 );
 
-CREATE TABLE theme_park.items_types (
+CREATE TABLE items_types (
     ID varchar(32) NOT NULL,
     picture_collection_ID varchar(32),
     name varchar(32) NOT NULL,
@@ -110,7 +112,7 @@ CREATE TABLE theme_park.items_types (
     FOREIGN KEY (picture_collection_ID) REFERENCES picture_collections (ID)
 );
 
-CREATE TABLE theme_park.items_in_shop (
+CREATE TABLE items_in_shop (
     ID varchar(32) NOT NULL,
     item_ID varchar(32) NOT NULL,
     shop_ID varchar(32) NOT NULL,
@@ -122,7 +124,7 @@ CREATE TABLE theme_park.items_in_shop (
     CHECK (price >= 0)
 );
 
-CREATE TABLE theme_park.transactions (
+CREATE TABLE transactions (
     ID varchar(32) NOT NULL,
     customer_ID varchar(32) NOT NULL,
     item_in_shop_ID varchar(32) NOT NULL,
@@ -138,7 +140,7 @@ CREATE TABLE theme_park.transactions (
 -- --------------------------------
 -- Section that focuses on rides, ticket purchase, and ticket usage.
 
-CREATE TABLE theme_park.rides (
+CREATE TABLE rides (
     ID varchar(32) NOT NULL,
     picture_collection_ID varchar(32),
     name varchar(32) NOT NULL,
@@ -155,7 +157,7 @@ CREATE TABLE theme_park.rides (
     CHECK (min_height >= 0)
 );
 
-CREATE TABLE theme_park.reviews (
+CREATE TABLE reviews (
     ID varchar(32) NOT NULL,
     ride_ID varchar(32) NOT NULL,
     customer_ID varchar(32) NOT NULL,
@@ -169,7 +171,7 @@ CREATE TABLE theme_park.reviews (
     CHECK (rating >= 1 AND rating <= 5)
 );
 
-CREATE TABLE theme_park.tickets (
+CREATE TABLE tickets (
     ID varchar(32) NOT NULL,
     user_ID varchar(32) NOT NULL,
     is_kid boolean DEFAULT TRUE NOT NULL,
@@ -180,7 +182,7 @@ CREATE TABLE theme_park.tickets (
     FOREIGN KEY (user_ID) REFERENCES customers (user_ID)
 );
 
-CREATE TABLE theme_park.tickets_on_rides (
+CREATE TABLE tickets_on_rides (
     ID varchar(32) NOT NULL,
     ride_ID varchar(32) NOT NULL,
     ticket_ID varchar(32) NOT NULL,
@@ -194,7 +196,7 @@ CREATE TABLE theme_park.tickets_on_rides (
 -- --------------------------------
 -- Section that focuses on employees and their schedule on rides.
 
-CREATE TABLE theme_park.roles (
+CREATE TABLE roles (
     ID varchar(32) NOT NULL,
     role varchar(16) NOT NULL,
     hourly_rate numeric(10, 2) NOT NULL,
@@ -203,7 +205,7 @@ CREATE TABLE theme_park.roles (
     CHECK (hourly_rate >= 0)
 );
 
-CREATE TABLE theme_park.employees (
+CREATE TABLE employees (
     ID varchar(32) NOT NULL,
     user_ID varchar(32) NOT NULL,
     role_ID varchar(32) NOT NULL,
@@ -212,7 +214,7 @@ CREATE TABLE theme_park.employees (
     FOREIGN KEY (role_ID) REFERENCES roles (ID)
 );
 
-CREATE TABLE theme_park.employees_on_rides (
+CREATE TABLE employees_on_rides (
     ID varchar(32) NOT NULL,
     ride_ID varchar(32) NOT NULL,
     employee_ID varchar(32) NOT NULL,
@@ -228,14 +230,14 @@ CREATE TABLE theme_park.employees_on_rides (
 -- --------------------------------
 -- Section that focuses on rides maintenance.
 
-CREATE TABLE theme_park.maintenance_types (
+CREATE TABLE maintenance_types (
     ID varchar(32) NOT NULL,
     maintenance_type varchar(16) NOT NULL,
     PRIMARY KEY (ID),
     UNIQUE (maintenance_type)
 );
 
-CREATE TABLE theme_park.rides_maintenance (
+CREATE TABLE rides_maintenance (
     ID varchar(32) NOT NULL,
     ride_ID varchar(32) NOT NULL,
     maintenance_type_ID varchar(32) NOT NULL,
@@ -250,7 +252,7 @@ CREATE TABLE theme_park.rides_maintenance (
     CHECK (start_datetime <= end_datetime)
 );
 
-CREATE TABLE theme_park.employees_on_maintenance (
+CREATE TABLE employees_on_maintenance (
     ID varchar(32) NOT NULL,
     maintenance_ID varchar(32) NOT NULL,
     employee_ID varchar(32) NOT NULL,
@@ -266,14 +268,14 @@ CREATE TABLE theme_park.employees_on_maintenance (
 -- --------------------------------
 -- Section that focuses on the event board (rainouts, specials, etc).
 
-CREATE TABLE theme_park.event_types (
+CREATE TABLE event_types (
     ID varchar(32) NOT NULL,
     event_type varchar(32) NOT NULL,
     PRIMARY KEY (ID),
     UNIQUE (event_type)
 );
 
-CREATE TABLE theme_park.events (
+CREATE TABLE events (
     ID varchar(32) NOT NULL,
     employee_ID varchar(32) NOT NULL,
     event_type_ID varchar(32) NOT NULL,
