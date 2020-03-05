@@ -192,20 +192,16 @@ func (ur *UserRepository) Store(user *models.User) error {
 
 	// ANONYMOUS BLOCK FOR TRANSACTION
 	{
-
-		// store user login
 		_, err = tx.Exec(insertUser, user.ID, user.Email, user.Email, user.PasswordSalt, user.PasswordHash, user.RegisteredOn)
 		if err != nil {
 			return fmt.Errorf("insertUser: %s", err)
 		}
 
-		// store user details
 		_, err = tx.Exec(insertDetail, user.ID, genderID, user.FirstName, user.LastName, user.DateOfBirth, user.Phone, user.Address)
 		if err != nil {
 			return fmt.Errorf("insertDetail: %s", err)
 		}
 
-		// store employee or customer
 		if user.IsEmployee {
 			var roleID string
 			err = db.Get(&roleID, selectRoleID, user.Role.String)
