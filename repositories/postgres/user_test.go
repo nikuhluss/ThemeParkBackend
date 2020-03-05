@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 
@@ -63,13 +65,13 @@ func setupTestUsers(db *sqlx.DB) {
 	db.MustExec(userInsertQuery, "user--B", "user--B--username", "user--B--email", "user--B--password_salt", "user--B--password_hash", time.Now())
 	db.MustExec(userInsertQuery, "user--C", "user--C--username", "user--C--email", "user--C--password_salt", "user--C--password_hash", time.Now())
 
-	db.MustExec(genderInsertQuery, "gender--A", "Male")
-	db.MustExec(genderInsertQuery, "gender--B", "Female")
-	db.MustExec(genderInsertQuery, "gender--C", "Other")
+	db.MustExec(genderInsertQuery, "gender--male", "Male")
+	db.MustExec(genderInsertQuery, "gender--female", "Female")
+	db.MustExec(genderInsertQuery, "gender--other", "Other")
 
-	db.MustExec(detailsInsertQuery, "user--A", "gender--A", "user--A--first_name", "user--A--last_name", time.Now(), "user--A--phone", "user--A--address")
-	db.MustExec(detailsInsertQuery, "user--B", "gender--B", "user--B--first_name", "user--B--last_name", time.Now(), "user--B--phone", "user--B--address")
-	db.MustExec(detailsInsertQuery, "user--C", "gender--C", "user--C--first_name", "user--C--last_name", time.Now(), "user--C--phone", "user--C--address")
+	db.MustExec(detailsInsertQuery, "user--A", "gender--male", "user--A--first_name", "user--A--last_name", time.Now(), "user--A--phone", "user--A--address")
+	db.MustExec(detailsInsertQuery, "user--B", "gender--female", "user--B--first_name", "user--B--last_name", time.Now(), "user--B--phone", "user--B--address")
+	db.MustExec(detailsInsertQuery, "user--C", "gender--other", "user--C--first_name", "user--C--last_name", time.Now(), "user--C--phone", "user--C--address")
 
 	db.MustExec(roleInsertQuery, "role--C", "role--C", 15.50)
 
@@ -79,7 +81,7 @@ func setupTestUsers(db *sqlx.DB) {
 // Tests
 // --------------------------------
 
-func TestFindSucceeds(t *testing.T) {
+func TestGetByIDSucceeds(t *testing.T) {
 	userRepository, db, teardown := UserRepositoryFixture()
 	defer teardown()
 
@@ -89,45 +91,49 @@ func TestFindSucceeds(t *testing.T) {
 		userID     string
 		gender     string
 		isEmployee bool
+		hourlyRate float32
 	}{
-		{"user--A", "Male", false},
-		{"user--B", "Female", false},
-		{"user--C", "Other", true},
+		{"user--A", "Male", false, 0.0},
+		{"user--B", "Female", false, 0.0},
+		{"user--C", "Other", true, 15.50},
 	}
 
 	for _, tt := range tests {
-		user, err := userRepository.Find(tt.userID)
+		user, err := userRepository.GetByID(tt.userID)
 		if !assert.Nil(t, err) {
 			t.FailNow()
 		}
 
 		assert.Equal(t, tt.userID, user.ID)
 		assert.Equal(t, tt.userID+"--email", user.Email)
+		assert.Equal(t, tt.userID+"--password_salt", user.PasswordSalt)
+		assert.Equal(t, tt.userID+"--password_hash", user.PasswordHash)
 		assert.Equal(t, tt.gender, user.Gender.String)
 		assert.Equal(t, tt.userID+"--first_name", user.FirstName.String)
 		assert.Equal(t, tt.userID+"--last_name", user.LastName.String)
 		assert.Equal(t, tt.userID+"--phone", user.Phone.String)
 		assert.Equal(t, tt.userID+"--address", user.Address.String)
 		assert.Equal(t, tt.isEmployee, user.IsEmployee)
+		assert.Equal(t, tt.hourlyRate, user.HourlyRate)
 	}
 }
 
-func TestFindNoMatchFails(t *testing.T) {
+func TestGetByIDNoMatchFails(t *testing.T) {
 	UserRepository, _, teardown := UserRepositoryFixture()
 	defer teardown()
 
-	user, err := UserRepository.Find("some-unknown-ID")
+	user, err := UserRepository.GetByID("some-unknown-ID")
 	assert.Nil(t, user)
 	assert.NotNil(t, err)
 }
 
-func TestListSucceeds(t *testing.T) {
+func TestFetchSucceeds(t *testing.T) {
 	userRepository, db, teardown := UserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
 
-	users, err := userRepository.List()
+	users, err := userRepository.Fetch()
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
@@ -135,13 +141,13 @@ func TestListSucceeds(t *testing.T) {
 	assert.Len(t, users, 3)
 }
 
-func TestListCustomersSucceeds(t *testing.T) {
+func TestFetchCustomersSucceeds(t *testing.T) {
 	userRepository, db, teardown := UserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
 
-	customers, err := userRepository.ListCustomers()
+	customers, err := userRepository.FetchCustomers()
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
@@ -149,16 +155,36 @@ func TestListCustomersSucceeds(t *testing.T) {
 	assert.Len(t, customers, 2)
 }
 
-func TestListEmployeesSucceeds(t *testing.T) {
+func TestFetchEmployeesSucceeds(t *testing.T) {
 	userRepository, db, teardown := UserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
 
-	employees, err := userRepository.ListEmployees()
+	employees, err := userRepository.FetchEmployees()
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
 	assert.Len(t, employees, 1)
+}
+
+func TestStoreSucceeds(t *testing.T) {
+	userRepository, db, teardown := UserRepositoryFixture()
+	defer teardown()
+
+	setupTestUsers(db)
+
+	customer := models.NewCustomer("customer--A", "customer--A--email", "customer--A--password_salt", "customer--A--password_hash")
+	err := userRepository.Store(customer)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	user, err := userRepository.GetByID("customer--A")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.NotNil(t, user)
 }

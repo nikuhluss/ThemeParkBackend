@@ -6,14 +6,13 @@ import (
 
 // ReviewRepository defines the interface for working with reviews.
 type ReviewRepository interface {
-	Find(ID string) (*models.Review, error)
-	List() ([]*models.Review, error)
-	ListForRideSortedByRating(rideID string) ([]*models.Review, error)
-	ListForRideSortedByDate(rideID string) ([]*models.Review, error)
+	GetByID(ID string) (*models.Review, error)
 
-	Create(ID, userID, title, content string) (*models.Review, error)
-	UpdateRating(ID string, rating int) error
-	UpdateTitle(ID, title string) error
-	UpdateContent(ID, content string) error
+	Fetch() ([]*models.Review, error)
+	FetchForRideSortedByRating(rideID string) ([]*models.Review, error)
+	FetchForRideSortedByDate(rideID string) ([]*models.Review, error)
+
+	Store(*models.Review) error
+	Update(*models.Review) error
 	Delete(ID string) error
 }

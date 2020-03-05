@@ -1,12 +1,32 @@
 package postgres
 
 import (
-	"time"
+	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
+
+// psql is a statement builder that uses Dollar format (Postgres).
+var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+// selectUsers is a query template that we can re-use for some queries below (GetBy*).
+var selectUsers = psql.
+	Select(
+		"users.*",
+		"user_details.*",
+		"genders.gender",
+		"(employees.ID IS NOT NULL) AS is_employee",
+		"roles.role",
+		"COALESCE(roles.hourly_rate, 0.0) as hourly_rate",
+	).
+	From("users").
+	LeftJoin("user_details ON user_details.user_ID = users.ID").
+	LeftJoin("genders ON genders.ID = user_details.gender_ID").
+	LeftJoin("employees ON employees.user_ID = users.ID").
+	LeftJoin("roles ON roles.ID = employees.role_ID")
 
 // UserRepository implements the UserRepository interface for postgres.
 type UserRepository struct {
@@ -19,24 +39,12 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{db}
 }
 
-// Find fetches an user from the postgres `users` and `user_details` tables.
-func (ur *UserRepository) Find(ID string) (*models.User, error) {
+// GetByID fetches an user from the postgres `users` and `user_details` tables.
+func (ur *UserRepository) GetByID(ID string) (*models.User, error) {
 	db := ur.db
 	udb := db.Unsafe()
 
-	query := `
-	SELECT
-		users.*,
-		user_details.*,
-		genders.gender,
-		(employees.ID IS NOT NULL) as is_employee
-	FROM users
-	LEFT JOIN user_details ON user_details.user_ID = users.ID
-	INNER JOIN genders ON genders.ID = user_details.gender_ID
-	LEFT JOIN employees ON employees.user_ID = users.ID
-	WHERE users.ID = $1
-	LIMIT 1
-	`
+	query, _ := selectUsers.Where("users.ID = $1").Limit(1).MustSql()
 
 	user := models.User{}
 	err := udb.Get(&user, query, ID)
@@ -47,22 +55,44 @@ func (ur *UserRepository) Find(ID string) (*models.User, error) {
 	return &user, err
 }
 
-// List fetches all users from the postgres `users` and `user_details` tables.
-func (ur *UserRepository) List() ([]*models.User, error) {
+// GetByEmail is similar to GetByID but uses the email for finding the user.
+func (ur *UserRepository) GetByEmail(email string) (*models.User, error) {
 	db := ur.db
 	udb := db.Unsafe()
 
-	query := `
-	SELECT
-		users.*,
-		user_details.*,
-		genders.gender,
-		(employees.ID IS NOT NULL) as is_employee
-	FROM users
-	LEFT JOIN user_details ON user_details.user_ID = users.ID
-	INNER JOIN genders ON genders.ID = user_details.gender_ID
-	LEFT JOIN employees ON employees.user_ID = users.ID
-	`
+	query, _ := selectUsers.Where("users.email = $1").Limit(1).MustSql()
+
+	user := models.User{}
+	err := udb.Get(&user, query, email)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, err
+}
+
+// GetByUsername is similar to GetByID but uses the username for finding the user.
+func (ur *UserRepository) GetByUsername(username string) (*models.User, error) {
+	db := ur.db
+	udb := db.Unsafe()
+
+	query, _ := selectUsers.Where("users.username = $1").Limit(1).MustSql()
+
+	user := models.User{}
+	err := udb.Get(&user, query, username)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, err
+}
+
+// Fetch fetches all users from the postgres `users` and `user_details` tables.
+func (ur *UserRepository) Fetch() ([]*models.User, error) {
+	db := ur.db
+	udb := db.Unsafe()
+
+	query, _ := selectUsers.MustSql()
 
 	users := []*models.User{}
 	err := udb.Select(&users, query)
@@ -73,9 +103,9 @@ func (ur *UserRepository) List() ([]*models.User, error) {
 	return users, err
 }
 
-// ListCustomers is like List, but fetches only the customers.
-func (ur *UserRepository) ListCustomers() ([]*models.User, error) {
-	users, err := ur.List()
+// FetchCustomers is like Fetch, but fetches only the customers.
+func (ur *UserRepository) FetchCustomers() ([]*models.User, error) {
+	users, err := ur.Fetch()
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +121,9 @@ func (ur *UserRepository) ListCustomers() ([]*models.User, error) {
 	return customers, nil
 }
 
-// ListEmployees is like List, but fetches only the employees.
-func (ur *UserRepository) ListEmployees() ([]*models.User, error) {
-	users, err := ur.List()
+// FetchEmployees is like Fetch, but fetches only the employees.
+func (ur *UserRepository) FetchEmployees() ([]*models.User, error) {
+	users, err := ur.Fetch()
 	if err != nil {
 		return nil, err
 	}
@@ -109,51 +139,95 @@ func (ur *UserRepository) ListEmployees() ([]*models.User, error) {
 	return employees, nil
 }
 
-// CreateCustomer creates a new customer using the given information. To add personal
-// details, use the update functions after creation.
-func CreateCustomer(email, passwordSalt, passwordHash string) (*models.User, error) {
-	return nil, nil
-}
+// Store creates a new user in the database.
+func (ur *UserRepository) Store(user *models.User) error {
 
-// CreateEmployee creates a new employee using the given information. To add personal
-// details, use the update functions after creation.
-func CreateEmployee(email, passwordSalt, passwordHash string) (*models.User, error) {
-	return nil, nil
-}
+	db := ur.db
 
-// UpdateGender changes the gender for the given user by querying available
-// genders and comparing against requested gender, if there's a match, grabs
-// and uses the ID of the matched gender.
-func (ur *UserRepository) UpdateGender(ID, gender string) error {
+	selectGenderID, _ := psql.
+		Select("ID").
+		From("genders").
+		Where("gender = $1").
+		MustSql()
+
+	selectRoleID, _ := psql.
+		Select("role_ID").
+		From("roles").
+		Where("role = $1").
+		MustSql()
+
+	insertUser, _, _ := psql.
+		Insert("users").
+		Columns("ID", "email", "username", "password_salt", "password_hash", "registered_on").
+		Values("?", "?", "?", "?", "?", "?").
+		ToSql()
+
+	insertDetail, _, _ := psql.
+		Insert("user_details").
+		Columns("user_ID", "gender_ID", "first_name", "last_name", "date_of_birth", "phone", "address").
+		Values("?", "?", "?", "?", "?", "?", "?").
+		ToSql()
+
+	insertEmployee, _, _ := psql.
+		Insert("employees").
+		Columns("ID", "user_ID", "role_ID").
+		Values("?", "?", "?").
+		ToSql()
+
+	insertCustomer, _, _ := psql.
+		Insert("customers").
+		Columns("user_ID").
+		Values("?").
+		ToSql()
+
+	var genderID *string
+	_ = db.Get(genderID, selectGenderID, user.Gender.String)
+
+	var roleID *string
+	_ = db.Get(roleID, selectRoleID, user.Role.String)
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(insertUser, user.ID, user.Email, user.Email, user.PasswordSalt, user.PasswordHash, user.RegisteredOn)
+	if err != nil {
+		return fmt.Errorf("insertUser: %s", err)
+	}
+
+	_, err = tx.Exec(insertDetail, user.ID, genderID, user.FirstName, user.LastName, user.DateOfBirth, user.Phone, user.Address)
+	if err != nil {
+		return fmt.Errorf("insertDetail: %s", err)
+	}
+
+	if user.IsEmployee {
+		_, err = tx.Exec(insertEmployee, user.ID, user.ID, roleID)
+		if err != nil {
+			return fmt.Errorf("insertEmployee: %s", err)
+		}
+	} else {
+		_, err := tx.Exec(insertCustomer, user.ID)
+		if err != nil {
+			return fmt.Errorf("insertCustomer: %s", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// UpdateFirstName updates the first name of the given user (if any).
-func (ur *UserRepository) UpdateFirstName(ID, firstName string) error {
+// Update updates an existing user in the database.
+func (ur *UserRepository) Update(*models.User) error {
 	return nil
 }
 
-// UpdateLastName updates the last name of the given user (if any).
-func (ur *UserRepository) UpdateLastName(ID, lastName string) error {
-	return nil
-}
-
-// UpdateDateOfBirth date of birth updates the date of birth of the given user (if any).
-func (ur *UserRepository) UpdateDateOfBirth(ID string, dateOfBirth time.Time) error {
-	return nil
-}
-
-// UpdatePhone phone updates the phone number of the given user (if any).
-func (ur *UserRepository) UpdatePhone(ID, phone string) error {
-	return nil
-}
-
-// UpdateAddress updates the address of the given user (if any).
-func (ur *UserRepository) UpdateAddress(ID, address string) error {
-	return nil
-}
-
-func Delete(ID string) error {
+// Delete deletes an existing user from the database.
+func (ur *UserRepository) Delete(ID string) error {
 	return nil
 }
 

@@ -3,6 +3,7 @@ module gitlab.com/uh-spring-2020/cosc-3380-team-14/backend
 go 1.13
 
 require (
+	github.com/Masterminds/squirrel v1.2.0
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/pkg/errors v0.9.1 // indirect

@@ -1,27 +1,23 @@
 package repositories
 
 import (
-	"time"
-
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
 // UserRepository defines the interface for working with users.
 type UserRepository interface {
-	Find(ID string) (*models.User, error)
-	List() ([]*models.User, error)
-	ListCustomers() ([]*models.User, error)
-	ListEmployees() ([]*models.User, error)
+	GetByID(ID string) (*models.User, error)
+	GetByEmail(email string) (*models.User, error)
+	GetByUsername(username string) (*models.User, error)
 
-	CreateCustomer(email, passwordSalt, passwordHash string) (*models.User, error)
-	CreateEmployee(email, passwordSalt, passwordHash string) (*models.User, error)
-	UpdateGender(ID, gender string) error
-	UpdateFirstName(ID, firstName string) error
-	UpdateLastName(ID, lastName string) error
-	UpdateDateOfBirth(ID string, dateOfBirth time.Time) error
-	UpdatePhone(ID, phone string) error
-	UpdateAddress(ID, address string) error
+	Fetch() ([]*models.User, string, error)
+	FetchCustomers() ([]*models.User, error)
+	FetchEmployees() ([]*models.User, error)
+
+	Store(*models.User) error
+	Update(*models.User) error
 	Delete(ID string) error
 
+	UpdatePassword(ID, passwordSalt, passwordHash string) error
 	AvailableGenders() ([]string, error)
 }
