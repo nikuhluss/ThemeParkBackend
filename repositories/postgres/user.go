@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -151,7 +152,7 @@ func (ur *UserRepository) Store(user *models.User) error {
 		MustSql()
 
 	selectRoleID, _ := psql.
-		Select("role_ID").
+		Select("ID").
 		From("roles").
 		Where("role = $1").
 		MustSql()
@@ -180,39 +181,51 @@ func (ur *UserRepository) Store(user *models.User) error {
 		Values("?").
 		ToSql()
 
-	var genderID *string
-	_ = db.Get(genderID, selectGenderID, user.Gender.String)
+	var genderID sql.NullString
+	_ = db.Get(&genderID, selectGenderID, user.Gender.String)
 
-	var roleID *string
-	_ = db.Get(roleID, selectRoleID, user.Role.String)
-
+	// begin the transaction
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(insertUser, user.ID, user.Email, user.Email, user.PasswordSalt, user.PasswordHash, user.RegisteredOn)
-	if err != nil {
-		return fmt.Errorf("insertUser: %s", err)
-	}
+	// ANONYMOUS BLOCK FOR TRANSACTION
+	{
 
-	_, err = tx.Exec(insertDetail, user.ID, genderID, user.FirstName, user.LastName, user.DateOfBirth, user.Phone, user.Address)
-	if err != nil {
-		return fmt.Errorf("insertDetail: %s", err)
-	}
-
-	if user.IsEmployee {
-		_, err = tx.Exec(insertEmployee, user.ID, user.ID, roleID)
+		// store user login
+		_, err = tx.Exec(insertUser, user.ID, user.Email, user.Email, user.PasswordSalt, user.PasswordHash, user.RegisteredOn)
 		if err != nil {
-			return fmt.Errorf("insertEmployee: %s", err)
+			return fmt.Errorf("insertUser: %s", err)
 		}
-	} else {
-		_, err := tx.Exec(insertCustomer, user.ID)
+
+		// store user details
+		_, err = tx.Exec(insertDetail, user.ID, genderID, user.FirstName, user.LastName, user.DateOfBirth, user.Phone, user.Address)
 		if err != nil {
-			return fmt.Errorf("insertCustomer: %s", err)
+			return fmt.Errorf("insertDetail: %s", err)
+		}
+
+		// store employee or customer
+		if user.IsEmployee {
+			var roleID string
+			err = db.Get(&roleID, selectRoleID, user.Role.String)
+			if err != nil {
+				return fmt.Errorf("selectRoleID: %s", err)
+			}
+
+			_, err = tx.Exec(insertEmployee, user.ID, user.ID, roleID)
+			if err != nil {
+				return fmt.Errorf("insertEmployee: %s", err)
+			}
+		} else {
+			_, err := tx.Exec(insertCustomer, user.ID)
+			if err != nil {
+				return fmt.Errorf("insertCustomer: %s", err)
+			}
 		}
 	}
 
+	// commit the transaction
 	err = tx.Commit()
 	if err != nil {
 		return err

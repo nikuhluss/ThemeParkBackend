@@ -39,7 +39,7 @@ func NewCustomer(ID, email, passwordSalt, passwordHash string) *User {
 }
 
 // NewEmployee returns a new User instance that is an employee.
-func NewEmployee(ID, email, passwordSalt, passwordHash string) *User {
+func NewEmployee(ID, email, passwordSalt, passwordHash, role string, hourlyRate float32) *User {
 	return &User{
 		ID:           ID,
 		Email:        email,
@@ -47,5 +47,7 @@ func NewEmployee(ID, email, passwordSalt, passwordHash string) *User {
 		PasswordHash: passwordHash,
 		RegisteredOn: time.Now(),
 		IsEmployee:   true,
+		Role:         sql.NullString{String: role, Valid: true},
+		HourlyRate:   hourlyRate,
 	}
 }

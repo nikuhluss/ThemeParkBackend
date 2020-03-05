@@ -169,7 +169,7 @@ func TestFetchEmployeesSucceeds(t *testing.T) {
 	assert.Len(t, employees, 1)
 }
 
-func TestStoreSucceeds(t *testing.T) {
+func TestStoreCustomerSucceeds(t *testing.T) {
 	userRepository, db, teardown := UserRepositoryFixture()
 	defer teardown()
 
@@ -181,10 +181,34 @@ func TestStoreSucceeds(t *testing.T) {
 		t.FailNow()
 	}
 
-	user, err := userRepository.GetByID("customer--A")
+	user, err := userRepository.GetByID(customer.ID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
 	assert.NotNil(t, user)
+	assert.False(t, user.IsEmployee)
+}
+
+func TestStoreEmployeeSucceeds(t *testing.T) {
+	userRepository, db, teardown := UserRepositoryFixture()
+	defer teardown()
+
+	setupTestUsers(db)
+
+	employee := models.NewEmployee("customer--A", "customer--A--email", "customer--A--password_salt", "customer--A--password_hash", "role--C", 15.50)
+	err := userRepository.Store(employee)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	user, err := userRepository.GetByID(employee.ID)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.NotNil(t, user)
+	assert.True(t, user.IsEmployee)
+	assert.Equal(t, user.Role.String, "role--C")
+	assert.Equal(t, user.HourlyRate, float32(15.50))
 }
