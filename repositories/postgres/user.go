@@ -231,7 +231,78 @@ func (ur *UserRepository) Store(user *models.User) error {
 }
 
 // Update updates an existing user in the database.
-func (ur *UserRepository) Update(*models.User) error {
+func (ur *UserRepository) Update(user *models.User) error {
+
+	updateUser, _, _ := psql.Update("users").
+		Set("email", "?").
+		Where("id = ?").
+		ToSql()
+	
+	updateDetails, _, _ := psql.Update("user_details").
+		Set("gender_id", "?").
+		Set("first_name", "?").
+		Set("last_name", "?").
+		Set("phone", "?").
+		Set("address","?").
+		Where("user_id = ?").
+		ToSql()
+
+	updateEmployee, _, _ := psql.Update("employees").
+		Set("role_id","?").
+		Where("id","?").
+		ToSql()
+	
+	selectRoleID, _ := psql.
+		Select("ID").
+		From("roles").
+		Where("role = $1").
+		MustSql()
+
+	selectGenderID, _ := psql.
+		Select("ID").
+		From("genders").
+		Where("gender = $1").
+		MustSql()
+
+	var genderID sql.NullString
+	_ = ur.db.Get(&genderID, selectGenderID, user.Gender.String)
+	
+	//Start transaction
+	tx, err := ur.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	{
+		_, err = tx.Exec(updateUser, user.Email, user.ID)
+		if err != nil {
+			return fmt.Errorf("updateUser: %s", err)
+		}
+
+		_, err = tx.Exec(updateDetails, genderID, user.FirstName, user.LastName, user.Phone, user.Address, user.ID)
+		if err != nil {
+			return fmt.Errorf("updateDetails: %s", err)
+		}
+
+		if user.IsEmployee{
+			var roleID string
+			err = ur.db.Get(&roleID, selectRoleID, user.Role.String)
+			if err != nil {
+				return fmt.Errorf("selectRoleID: %s", err)
+			}
+
+			_, err = tx.Exec(updateEmployee, roleID, user.ID)
+			if err != nil {
+				return fmt.Errorf("updateRole: %s", err)
+			}
+		}
+
+	}
+	err = tx.Commit()
+	if err != nil{
+		return err
+	}
+
 	return nil
 }
 

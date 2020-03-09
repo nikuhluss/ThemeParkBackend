@@ -212,3 +212,28 @@ func TestStoreEmployeeSucceeds(t *testing.T) {
 	assert.Equal(t, user.Role.String, "role--C")
 	assert.Equal(t, user.HourlyRate, float32(15.50))
 }
+
+func TestUpdateCustomerSucceeds(t *testing.T){
+	userRepository, db, teardown := UserRepositoryFixture()
+	defer teardown()
+
+	setupTestUsers(db)
+
+	user, err := userRepository.GetByID("user--A")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	user.Email = "Nick"
+	err = userRepository.Update(user)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	user, err = userRepository.GetByID("user--A")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, user.Email, "Nick")
+}
