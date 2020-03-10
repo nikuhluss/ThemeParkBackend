@@ -237,3 +237,19 @@ func TestUpdateCustomerSucceeds(t *testing.T){
 
 	assert.Equal(t, user.Email, "Nick")
 }
+
+func TestDeleteUserSucceeds(t *testing.T){
+	userRepository, db, teardown := UserRepositoryFixture()
+	defer teardown()
+
+	setupTestUsers(db)
+	//delete a user, check if he isn't there
+	err := userRepository.Delete("user--C")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	user, err := userRepository.GetByID("user--C")
+	assert.Nil(t, user)
+	assert.NotNil(t, err)
+}

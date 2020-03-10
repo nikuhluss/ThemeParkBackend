@@ -308,6 +308,73 @@ func (ur *UserRepository) Update(user *models.User) error {
 
 // Delete deletes an existing user from the database.
 func (ur *UserRepository) Delete(ID string) error {
+
+	// TODO account for deleting employees from maintanence
+	db := ur.db
+
+	deleteUser, _, _ := psql.
+		Delete("users").
+		Where("id = ?").
+		ToSql()
+
+	deleteDetails, _, _ := psql.
+		Delete("user_details").
+		Where("user_id = ?").
+		ToSql()
+
+	deleteEmployee, _, _ := psql.
+		Delete("employees").
+		Where("user_id = ?").
+		ToSql()
+	
+	deleteCustomer, _, _ := psql.
+		Delete("customers").
+		Where("user_id").
+		ToSql()
+	
+	user, err := ur.GetByID(ID)
+	if err != nil {
+		return fmt.Errorf("user does not exist to be deleted: %s", err)
+	}
+	
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+
+	{
+		
+
+		_, err = tx.Exec(deleteDetails, ID)
+		if err != nil {
+			return fmt.Errorf("deleteDetails: %s", err)
+		}
+		//this is where removing from employee maintanence would happen
+		if user.IsEmployee { 
+			_, err = tx.Exec(deleteEmployee, ID)
+			if err != nil {
+				return fmt.Errorf("deleteEmployee: %s", err)
+			}
+		} else {
+			_, err = tx.Exec(deleteCustomer, ID)
+			if err != nil {
+				return fmt.Errorf("deleteCustomer: %s", err)
+			}
+		}	
+
+		_, err = tx.Exec(deleteUser, ID)
+		if err != nil {
+			return fmt.Errorf("deleteUser: %s", err)
+		}
+	}
+
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
