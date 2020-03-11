@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -76,6 +77,20 @@ func setupTestUsers(db *sqlx.DB) {
 	db.MustExec(roleInsertQuery, "role--C", "role--C", 15.50)
 
 	db.MustExec(employeeInsertQuery, "employee--C", "user--C", "role--C")
+}
+
+// Utility
+// --------------------------------
+
+func assertUserLoginEqual(t *testing.T, expected *models.User, actual *models.User) {
+	assert.Equal(t, expected.ID, actual.ID)
+	assert.Equal(t, expected.Email, actual.Email)
+	assert.Equal(t, expected.PasswordSalt, actual.PasswordSalt)
+	assert.Equal(t, expected.PasswordHash, actual.PasswordHash)
+}
+
+func assertUserDetailsEqual(t *testing.T, expected *models.User, actual *models.User) {
+
 }
 
 // Tests
@@ -213,7 +228,7 @@ func TestStoreEmployeeSucceeds(t *testing.T) {
 	assert.Equal(t, user.HourlyRate, float32(15.50))
 }
 
-func TestUpdateCustomerSucceeds(t *testing.T){
+func TestUpdateCustomerSucceeds(t *testing.T) {
 	userRepository, db, teardown := UserRepositoryFixture()
 	defer teardown()
 
@@ -224,25 +239,34 @@ func TestUpdateCustomerSucceeds(t *testing.T){
 		t.FailNow()
 	}
 
-	user.Email = "Nick"
-	err = userRepository.Update(user)
+	// create expected user. Note that not all values ca be updated (password, registered_on, etc)
+	expectedUser := models.NewCustomer(user.ID, "expected--Email", user.PasswordSalt, user.PasswordHash)
+	expectedUser.RegisteredOn = user.RegisteredOn
+	expectedUser.Gender = sql.NullString{String: "Other", Valid: true}
+	expectedUser.FirstName = sql.NullString{String: "expected--first_name", Valid: true}
+	expectedUser.LastName = sql.NullString{String: "expected--last_name", Valid: true}
+	expectedUser.Phone = sql.NullString{String: "expected--phone", Valid: true}
+	expectedUser.Address = sql.NullString{String: "expected--address", Valid: true}
+
+	err = userRepository.Update(expectedUser)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	user, err = userRepository.GetByID("user--A")
+	updatedUser, err := userRepository.GetByID("user--A")
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	assert.Equal(t, user.Email, "Nick")
+	assert.Equal(t, expectedUser, updatedUser)
 }
 
-func TestDeleteUserSucceeds(t *testing.T){
+func TestDeleteUserSucceeds(t *testing.T) {
 	userRepository, db, teardown := UserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
+
 	//delete a user, check if he isn't there
 	err := userRepository.Delete("user--C")
 	if !assert.Nil(t, err) {
