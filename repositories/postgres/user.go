@@ -199,7 +199,7 @@ func (ur *UserRepository) Store(user *models.User) error {
 
 		_, err = tx.Exec(insertDetail, user.ID, genderID, user.FirstName, user.LastName, user.DateOfBirth, user.Phone, user.Address)
 		if err != nil {
-			return fmt.Errorf("insertDetail: %s", err)
+			return fmt.Errorf("insertDetails: %s", err)
 		}
 
 		if user.IsEmployee {
@@ -231,12 +231,149 @@ func (ur *UserRepository) Store(user *models.User) error {
 }
 
 // Update updates an existing user in the database.
-func (ur *UserRepository) Update(*models.User) error {
+func (ur *UserRepository) Update(user *models.User) error {
+
+	updateUser, _, _ := psql.Update("users").
+		Set("email", "?").
+		Where("id = ?").
+		ToSql()
+
+	updateDetails, _, _ := psql.Update("user_details").
+		Set("gender_id", "?").
+		Set("first_name", "?").
+		Set("last_name", "?").
+		Set("date_of_birth", "?").
+		Set("phone", "?").
+		Set("address", "?").
+		Where("user_id = ?").
+		ToSql()
+
+	updateEmployee, _, _ := psql.Update("employees").
+		Set("role_id", "?").
+		Where("id", "?").
+		ToSql()
+
+	selectRoleID, _ := psql.
+		Select("ID").
+		From("roles").
+		Where("role = $1").
+		MustSql()
+
+	selectGenderID, _ := psql.
+		Select("ID").
+		From("genders").
+		Where("gender = $1").
+		MustSql()
+
+	var genderID sql.NullString
+	_ = ur.db.Get(&genderID, selectGenderID, user.Gender.String)
+
+	//Start transaction
+	tx, err := ur.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	{
+		_, err = tx.Exec(updateUser, user.Email, user.ID)
+		if err != nil {
+			return fmt.Errorf("updateUser: %s", err)
+		}
+
+		_, err = tx.Exec(updateDetails, genderID, user.FirstName, user.LastName, user.DateOfBirth, user.Phone, user.Address, user.ID)
+		if err != nil {
+			return fmt.Errorf("updateDetails: %s", err)
+		}
+
+		if user.IsEmployee {
+			var roleID string
+			err = ur.db.Get(&roleID, selectRoleID, user.Role.String)
+			if err != nil {
+				return fmt.Errorf("selectRoleID: %s", err)
+			}
+
+			_, err = tx.Exec(updateEmployee, roleID, user.ID)
+			if err != nil {
+				return fmt.Errorf("updateRole: %s", err)
+			}
+		}
+
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Delete deletes an existing user from the database.
 func (ur *UserRepository) Delete(ID string) error {
+
+	// TODO account for deleting employees from maintanence
+	db := ur.db
+
+	deleteUser, _, _ := psql.
+		Delete("users").
+		Where("id = ?").
+		ToSql()
+
+	deleteDetails, _, _ := psql.
+		Delete("user_details").
+		Where("user_id = ?").
+		ToSql()
+
+	deleteEmployee, _, _ := psql.
+		Delete("employees").
+		Where("user_id = ?").
+		ToSql()
+
+	deleteCustomer, _, _ := psql.
+		Delete("customers").
+		Where("user_id").
+		ToSql()
+
+	user, err := ur.GetByID(ID)
+	if err != nil {
+		return fmt.Errorf("user does not exist to be deleted: %s", err)
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	{
+
+		_, err = tx.Exec(deleteDetails, ID)
+		if err != nil {
+			return fmt.Errorf("deleteDetails: %s", err)
+		}
+		//this is where removing from employee maintanence would happen
+		if user.IsEmployee {
+			_, err = tx.Exec(deleteEmployee, ID)
+			if err != nil {
+				return fmt.Errorf("deleteEmployee: %s", err)
+			}
+		} else {
+			_, err = tx.Exec(deleteCustomer, ID)
+			if err != nil {
+				return fmt.Errorf("deleteCustomer: %s", err)
+			}
+		}
+
+		_, err = tx.Exec(deleteUser, ID)
+		if err != nil {
+			return fmt.Errorf("deleteUser: %s", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
