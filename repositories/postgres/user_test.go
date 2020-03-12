@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
 // Fixtures

@@ -18,5 +18,5 @@ const (
 type Picture struct {
 	ID     string
 	Format PictureFormat
-	Data   []byte
+	Data   []byte `db:"blob"`
 }
