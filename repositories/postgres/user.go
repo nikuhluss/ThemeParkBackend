@@ -4,14 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
-
-// psql is a statement builder that uses Dollar format (Postgres).
-var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 // selectUsers is a query template that we can re-use for some queries below (GetBy*).
 var selectUsers = psql.

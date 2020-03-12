@@ -65,7 +65,8 @@ CREATE TABLE pictures (
     ID varchar(32) NOT NULL,
     format varchar(16) NOT NULL,
     blob bytea NOT NULL,
-    PRIMARY KEY (ID)
+    PRIMARY KEY (ID),
+    CHECK (format <> '')
 );
 
 CREATE TABLE picture_collections (
@@ -151,6 +152,7 @@ CREATE TABLE rides (
     latitude integer,
     PRIMARY KEY (ID),
     UNIQUE (name),
+    CHECK (name <> ''),
     CHECK (longitude >= - 180 AND longitude <= 180),
     CHECK (latitude >= - 90 AND latitude <= 90),
     CHECK (min_age >= 0),
