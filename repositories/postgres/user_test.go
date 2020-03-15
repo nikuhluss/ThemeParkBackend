@@ -276,3 +276,20 @@ func TestDeleteUserSucceeds(t *testing.T) {
 	assert.Nil(t, user)
 	assert.NotNil(t, err)
 }
+
+func TestGetAllGendersSucceeds(t *testing.T) {
+	userRepository, db, teardown := UserRepositoryFixture()
+	defer teardown()
+
+	setupTestUsers(db)
+
+	user, err := userRepository.AvailableGenders()
+
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, "Other", *user[0])
+	assert.Equal(t, "Female", *user[1])
+	assert.Equal(t, "Male", *user[2])
+}

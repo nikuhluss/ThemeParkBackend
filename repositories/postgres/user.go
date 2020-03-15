@@ -374,6 +374,17 @@ func (ur *UserRepository) Delete(ID string) error {
 }
 
 // AvailableGenders returns are the valid values for gender.
-func (ur *UserRepository) AvailableGenders() ([]string, error) {
-	return nil, nil
+func (ur *UserRepository) AvailableGenders() ([]*string, error) {
+	db := ur.db
+	udb := db.Unsafe()
+
+	query, _ := psql.Select("DISTINCT gender").From("genders").MustSql()
+
+	rows := []*string{}
+	err := udb.Select(&rows, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, err
 }
