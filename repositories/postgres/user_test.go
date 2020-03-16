@@ -304,13 +304,13 @@ func TestGetAllGendersSucceeds(t *testing.T) {
 
 	setupTestUsers(db)
 
-	user, err := userRepository.AvailableGenders()
+	genders, err := userRepository.AvailableGenders()
 
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	assert.Equal(t, "Other", *user[0])
-	assert.Equal(t, "Female", *user[1])
-	assert.Equal(t, "Male", *user[2])
+	assert.Equal(t, "Other", genders[0])
+	assert.Equal(t, "Female", genders[1])
+	assert.Equal(t, "Male", genders[2])
 }

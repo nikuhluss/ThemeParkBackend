@@ -373,16 +373,17 @@ func (ur *UserRepository) Delete(ID string) error {
 	return nil
 }
 
+// UpdatePassword updates the password salt and hash for the given user ID.
 func (ur *UserRepository) UpdatePassword(ID, passwordSalt, passwordHash string) error {
-	//update
-	//set this.set this.set this where id = id
-	updatePass, _, _ := psql.Update("users").
-	Set("password_salt", "?").
-	Set("password_hash", "?").
-	Where("id = ?").
-	ToSql()
+	db := ur.db
 
-	tx, err := ur.db.Begin()
+	updatePass, _, _ := psql.Update("users").
+		Set("password_salt", "?").
+		Set("password_hash", "?").
+		Where("id = ?").
+		ToSql()
+
+	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
@@ -403,13 +404,13 @@ func (ur *UserRepository) UpdatePassword(ID, passwordSalt, passwordHash string) 
 }
 
 // AvailableGenders returns are the valid values for gender.
-func (ur *UserRepository) AvailableGenders() ([]*string, error) {
+func (ur *UserRepository) AvailableGenders() ([]string, error) {
 	db := ur.db
 	udb := db.Unsafe()
 
 	query, _ := psql.Select("DISTINCT gender").From("genders").MustSql()
 
-	rows := []*string{}
+	rows := []string{}
 	err := udb.Select(&rows, query)
 	if err != nil {
 		return nil, err
