@@ -373,7 +373,48 @@ func (ur *UserRepository) Delete(ID string) error {
 	return nil
 }
 
+// UpdatePassword updates the password salt and hash for the given user ID.
+func (ur *UserRepository) UpdatePassword(ID, passwordSalt, passwordHash string) error {
+	db := ur.db
+
+	updatePass, _, _ := psql.Update("users").
+		Set("password_salt", "?").
+		Set("password_hash", "?").
+		Where("id = ?").
+		ToSql()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	{
+		_, err = tx.Exec(updatePass, passwordSalt, passwordHash, ID)
+		if err != nil {
+			return fmt.Errorf("updatePass: %s", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // AvailableGenders returns are the valid values for gender.
 func (ur *UserRepository) AvailableGenders() ([]string, error) {
-	return nil, nil
+	db := ur.db
+	udb := db.Unsafe()
+
+	query, _ := psql.Select("DISTINCT gender").From("genders").MustSql()
+
+	rows := []string{}
+	err := udb.Select(&rows, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, err
 }
