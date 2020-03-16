@@ -373,6 +373,35 @@ func (ur *UserRepository) Delete(ID string) error {
 	return nil
 }
 
+func (ur *UserRepository) UpdatePassword(ID, passwordSalt, passwordHash string) error {
+	//update
+	//set this.set this.set this where id = id
+	updatePass, _, _ := psql.Update("users").
+	Set("password_salt", "?").
+	Set("password_hash", "?").
+	Where("id = ?").
+	ToSql()
+
+	tx, err := ur.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	{
+		_, err = tx.Exec(updatePass, passwordSalt, passwordHash, ID)
+		if err != nil {
+			return fmt.Errorf("updatePass: %s", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // AvailableGenders returns are the valid values for gender.
 func (ur *UserRepository) AvailableGenders() ([]*string, error) {
 	db := ur.db
