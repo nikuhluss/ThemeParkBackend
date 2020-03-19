@@ -16,6 +16,12 @@ type RideRepository struct {
 	db *sqlx.DB
 }
 
+// NewUserRepository creates a new UserRepository instance using the given
+// database instance.
+func NewRideRepository(db *sqlx.DB) *RideRepository {
+	return &RideRepository{db}
+}
+
 // GetByID fetches a ride from the database using the given ID.
 func (rr *RideRepository) GetByID(ID string) (*models.Ride, error) {
 	db := rr.db
@@ -54,11 +60,11 @@ func (rr *RideRepository) Store(ride *models.Ride) error {
 
 	insertRide, _, _ := psql.
 		Insert("rides").
-		Columns("ID", "name", "description", "min_age", "min_height").
-		Values("?", "?", "?", "?", "?").
+		Columns("ID", "name", "description", "min_age", "min_height", "longitude", "latitude").
+		Values("?", "?", "?", "?", "?", "?", "?").
 		ToSql()
 
-	_, err := db.Exec(insertRide, ride.ID, ride.Name, ride.Description, ride.MinAge, ride.MinHeight)
+	_, err := db.Exec(insertRide, ride.ID, ride.Name, ride.Description, ride.MinAge, ride.MinHeight, ride.Longitude, ride.Latitude)
 	if err != nil {
 		return fmt.Errorf("inserRide: %s", err)
 	}
