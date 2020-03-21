@@ -5,6 +5,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
@@ -63,7 +64,7 @@ func (rr *ReviewRepository) Store(review *models.Review) error {
 		Columns("ID", "ride_ID", "customer_ID", "rating", "title", "content").
 		Values("?", "?", "?", "?", "?", "?").
 		ToSql()
-	
+
 	_, err := db.Exec(insertReview, review.ID, review.RideID, review.UserID, review.Rating, review.Title, review.Content)
 	if err != nil {
 		return fmt.Errorf("insertReview: %s", err)
@@ -107,4 +108,3 @@ func (rr *ReviewRepository) Delete(ID string) error {
 
 	return nil
 }
-
