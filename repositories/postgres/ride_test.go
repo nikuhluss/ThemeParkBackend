@@ -105,8 +105,8 @@ func TestStoreRideSucceeds(t *testing.T) {
 
 	setupTestRides(db)
 
-	reviews := []models.Review{
-		models.Review{
+	reviews := []*models.Review{
+		&models.Review{
 			ID:      "review--A",
 			RideID:  "ride--D",
 			UserID:  "user--A",
@@ -116,8 +116,8 @@ func TestStoreRideSucceeds(t *testing.T) {
 		},
 	}
 
-	pictures := []models.Picture{
-		models.Picture{
+	pictures := []*models.Picture{
+		&models.Picture{
 			ID:     "pic--A",
 			Format: "image/png",
 			Data:   []byte{0},
