@@ -151,5 +151,73 @@ func TestStoreRideSucceeds(t *testing.T) {
 
 	assert.NotNil(t, ride)
 	assert.Equal(t, "ride--D", ride.ID)
+	assert.Equal(t, "ride--D--name", ride.Name)
+	assert.Equal(t, "ride--D--description", ride.Description)
+
+}
+
+func TestUpdateRideSucceeds(t *testing.T){
+	rideRepository, db, teardown := RideRepositoryFixture()
+	defer teardown()
+
+	setupTestRides(db)
+
+	ride, err := rideRepository.GetByID("ride--A")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	var reviews []models.Review
+	reviews = []models.Review{
+		models.Review{
+			ID: "review--A",
+			RideID: "ride--D",
+			UserID: "user--A",
+			Title: "the best ride",
+			Content: "i like this ride", 
+			Rating: 5,
+		},
+	}
+	
+	url := "http://i.imgur.com/m1UIjW1.jpg"
+    // don't worry about errors
+    response, err := http.Get(url)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer response.Body.Close()
+
+	responseData, err := ioutil.ReadAll(response.Body)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+	var pictures []models.Picture
+	pictures = []models.Picture{
+		models.Picture{
+			ID: "pic--A",
+			Format: "image/png",
+			Data: []byte(responseData),
+		},
+	}
+
+	expectedRide := models.NewRide(ride.ID, "ride--D--name", "ride--D--description", 4, 4, 4, 4, pictures, reviews)
+	
+	err = rideRepository.Update(expectedRide)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	updatedRide, err := rideRepository.GetByID("ride--A")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, expectedRide.ID, updatedRide.ID)
+	assert.Equal(t, expectedRide.Name, updatedRide.Name)
+	assert.Equal(t, expectedRide.Description, updatedRide.Description)
+	assert.Equal(t, expectedRide.MinAge, updatedRide.MinAge)
+	assert.Equal(t, expectedRide.MinHeight, updatedRide.MinHeight)
+
 
 }
