@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -8,7 +9,10 @@ import (
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
-var selectMaintenance = psql.Select("rides_maintenance.*").From("rides maintenance")
+var selectMaintenance = psql.
+	Select("rides_maintenance.*", "maintenance_types.maintenance_type").
+	From("rides_maintenance").
+	LeftJoin("maintenance_types ON maintenance_types.ID = rides_maintenance.maintenance_type_ID")
 
 // MaintenanceRepository implements the MaintenanceRepository interface for postgres.
 type MaintenanceRepository struct {
@@ -26,15 +30,15 @@ func (rr *MaintenanceRepository) GetByID(ID string) (*models.Maintenance, error)
 	db := rr.db
 	udb := db.Unsafe()
 
-	query, _ := selectMaintenance.Where(sq.Eq{"Maintenance.ID": ID}).MustSql()
+	query, _ := selectMaintenance.Where(sq.Eq{"rides_maintenance.ID": ID}).MustSql()
 
-	rides_maintenance := models.Maintenance{}
-	err := udb.Get(&rides_maintenance, query, ID)
+	maintenance := models.Maintenance{}
+	err := udb.Get(&maintenance, query, ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rides_maintenance, nil
+	return &maintenance, nil
 }
 
 // Fetch fetches all maintenance from the database.
@@ -53,9 +57,30 @@ func (rr *MaintenanceRepository) Fetch() ([]*models.Maintenance, error) {
 	return maintenance, err
 }
 
+// FetchByRideID is similar to Fetch, but fetches for the given ride rather than all entries.
+func (rr *MaintenanceRepository) FetchByRideID(rideID string) ([]*models.Maintenance, error) {
+	// TODO
+	return nil, nil
+}
+
 // Store creates an entry for the given maintenance model in the database.
 func (rr *MaintenanceRepository) Store(maintenance *models.Maintenance) error {
 	db := rr.db
+
+	selectMaintenanceTypeID, _ := psql.
+		Select("ID").
+		From("maintenance_types").
+		Where("type = $1").
+		MustSql()
+
+	var maintenanceTypeID sql.NullString
+	err := rr.db.Get(&maintenanceTypeID, selectMaintenanceTypeID, maintenance.MaintenanceType)
+	if err != nil {
+		return fmt.Errorf("selectMaintenanceTypeID: %s", err)
+	}
+	if !maintenanceTypeID.Valid {
+		return fmt.Errorf("selectMaintenanceTypeID: could not find valid ID for '%s'", maintenance.MaintenanceType)
+	}
 
 	insertMaintenance, _, _ := psql.
 		Insert("rides_maintenance").
@@ -63,7 +88,7 @@ func (rr *MaintenanceRepository) Store(maintenance *models.Maintenance) error {
 		Values("?", "?", "?", "?", "?", "?", "?").
 		ToSql()
 
-	_, err := db.Exec(insertMaintenance, maintenance.ID, maintenance.RideID, maintenance.MaintenanceTypeID, maintenance.Description, maintenance.Cost, maintenance.StartDateTime, maintenance.EndDateTime)
+	_, err = db.Exec(insertMaintenance, maintenance.ID, maintenance.RideID, maintenanceTypeID, maintenance.Description, maintenance.Cost, maintenance.Start, maintenance.End)
 	if err != nil {
 		return fmt.Errorf("inserMaintenance: %s", err)
 	}
@@ -75,6 +100,21 @@ func (rr *MaintenanceRepository) Store(maintenance *models.Maintenance) error {
 func (rr *MaintenanceRepository) Update(maintenance *models.Maintenance) error {
 	db := rr.db
 
+	selectMaintenanceTypeID, _ := psql.
+		Select("ID").
+		From("maintenance_types").
+		Where("type = $1").
+		MustSql()
+
+	var maintenanceTypeID sql.NullString
+	err := rr.db.Get(&maintenanceTypeID, selectMaintenanceTypeID, maintenance.MaintenanceType)
+	if err != nil {
+		return fmt.Errorf("selectMaintenanceTypeID: %s", err)
+	}
+	if !maintenanceTypeID.Valid {
+		return fmt.Errorf("selectMaintenanceTypeID: could not find valid ID for '%s'", maintenance.MaintenanceType)
+	}
+
 	updateMaintenance, _, _ := psql.
 		Update("rides_maintenance").
 		Set("ride_id", "?").
@@ -85,7 +125,7 @@ func (rr *MaintenanceRepository) Update(maintenance *models.Maintenance) error {
 		Where("id = ?").
 		ToSql()
 
-	_, err := db.Exec(updateMaintenance, maintenance.RideID, maintenance.MaintenanceTypeID, maintenance.Description, maintenance.Cost, maintenance.StartDateTime, maintenance.EndDateTime)
+	_, err = db.Exec(updateMaintenance, maintenance.RideID, maintenanceTypeID, maintenance.Description, maintenance.Cost, maintenance.Start, maintenance.End)
 	if err != nil {
 		return fmt.Errorf("updateMaintenance: %s", err)
 	}
@@ -97,7 +137,7 @@ func (rr *MaintenanceRepository) Update(maintenance *models.Maintenance) error {
 func (rr *MaintenanceRepository) Delete(ID string) error {
 	db := rr.db
 
-	deleteMaintenance, _, _ := psql.Delete("rides_maintenance").Where("id = ?").ToSql()
+	deleteMaintenance, _, _ := psql.Delete("rides_maintenance").Where("ID = ?").ToSql()
 
 	_, err := db.Exec(deleteMaintenance, ID)
 	if err != nil {

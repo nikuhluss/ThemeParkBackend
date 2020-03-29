@@ -2,9 +2,9 @@
 -- Team 14 - Theme Park
 --
 -- Conventions:
---'ID' in column names is upper-case.
+--'id' in column names is lower-case.
 -- Everything else in column names is lower-case.
--- ID(s) are varchar(32).
+-- id(s) are varchar(32).
 -- description(s) are varchar(128).
 -- all contraints (including primary key) at the end of CREATE TABLE statement.
 -- prices/costs are of type numeric(10, 2).
@@ -21,40 +21,40 @@
 SET search_path TO theme_park;
 
 CREATE TABLE users (
-    ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
     username varchar(32) NOT NULL,
     email varchar(64) NOT NULL,
     password_salt varchar(32) NOT NULL,
     password_hash varchar(32) NOT NULL,
     registered_on timestamp NOT NULL,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (id),
     UNIQUE (username),
     UNIQUE (email)
 );
 
 CREATE TABLE genders (
-    ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
     gender varchar(16) NOT NULL,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (id),
     UNIQUE (gender)
 );
 
 CREATE TABLE user_details (
-    user_ID varchar(32) NOT NULL,
-    gender_ID varchar(32),
+    user_id varchar(32) NOT NULL,
+    gender_id varchar(32),
     first_name varchar(32),
     last_name varchar(32),
     date_of_birth date,
     phone varchar(16),
     address varchar(32),
-    PRIMARY KEY (user_ID),
-    FOREIGN KEY (user_ID) REFERENCES users (ID)
+    PRIMARY KEY (user_id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 CREATE TABLE customers (
-    user_ID varchar(32) NOT NULL,
-    PRIMARY KEY (user_ID),
-    FOREIGN KEY (user_ID) REFERENCES users (ID)
+    user_id varchar(32) NOT NULL,
+    PRIMARY KEY (user_id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 -- Pictures
@@ -62,25 +62,25 @@ CREATE TABLE customers (
 -- Section that focuses on picture collections.
 
 CREATE TABLE pictures (
-    ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
     format varchar(16) NOT NULL,
     blob bytea NOT NULL,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (id),
     CHECK (format <> '')
 );
 
 CREATE TABLE picture_collections (
-    ID varchar(32) NOT NULL,
-    PRIMARY KEY (ID)
+    id varchar(32) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE pictures_in_collection (
-    picture_ID varchar(32) NOT NULL,
-    collection_ID varchar(32) NOT NULL,
+    picture_id varchar(32) NOT NULL,
+    collection_id varchar(32) NOT NULL,
     picture_sequence integer,
-    PRIMARY KEY (picture_ID, collection_ID),
-    FOREIGN KEY (picture_ID) REFERENCES pictures (ID),
-    FOREIGN KEY (collection_ID) REFERENCES picture_collections (ID)
+    PRIMARY KEY (picture_id, collection_id),
+    FOREIGN KEY (picture_id) REFERENCES pictures (id),
+    FOREIGN KEY (collection_id) REFERENCES picture_collections (id)
 );
 
 -- Shop, Transactions
@@ -88,53 +88,53 @@ CREATE TABLE pictures_in_collection (
 -- Section that focuses on the shops.
 
 CREATE TABLE shop_types (
-    ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
     shop_type varchar(32) NOT NULL,
-    PRIMARY KEY (ID)
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE shops (
-    ID varchar(32) NOT NULL,
-    shop_type_ID varchar(32) NOT NULL,
-    picture_collection_ID varchar(32),
+    id varchar(32) NOT NULL,
+    shop_type_id varchar(32) NOT NULL,
+    picture_collection_id varchar(32),
     name varchar(32) NOT NULL,
     description varchar(128),
-    PRIMARY KEY (ID),
-    FOREIGN KEY (shop_type_ID) REFERENCES shop_types (ID),
-    FOREIGN KEY (picture_collection_ID) REFERENCES picture_collections (ID)
+    PRIMARY KEY (id),
+    FOREIGN KEY (shop_type_id) REFERENCES shop_types (id),
+    FOREIGN KEY (picture_collection_id) REFERENCES picture_collections (id)
 );
 
 CREATE TABLE items_types (
-    ID varchar(32) NOT NULL,
-    picture_collection_ID varchar(32),
+    id varchar(32) NOT NULL,
+    picture_collection_id varchar(32),
     name varchar(32) NOT NULL,
     description varchar(128),
-    PRIMARY KEY (ID),
-    FOREIGN KEY (picture_collection_ID) REFERENCES picture_collections (ID)
+    PRIMARY KEY (id),
+    FOREIGN KEY (picture_collection_id) REFERENCES picture_collections (id)
 );
 
 CREATE TABLE items_in_shop (
-    ID varchar(32) NOT NULL,
-    item_ID varchar(32) NOT NULL,
-    shop_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    item_id varchar(32) NOT NULL,
+    shop_id varchar(32) NOT NULL,
     price numeric(10, 2) NOT NULL,
-    PRIMARY KEY (ID),
-    UNIQUE (ID, item_ID, shop_ID),
-    FOREIGN KEY (item_ID) REFERENCES items_types (ID),
-    FOREIGN KEY (shop_ID) REFERENCES shops (ID),
+    PRIMARY KEY (id),
+    UNIQUE (id, item_id, shop_id),
+    FOREIGN KEY (item_id) REFERENCES items_types (id),
+    FOREIGN KEY (shop_id) REFERENCES shops (id),
     CHECK (price >= 0)
 );
 
 CREATE TABLE transactions (
-    ID varchar(32) NOT NULL,
-    customer_ID varchar(32) NOT NULL,
-    item_in_shop_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    customer_id varchar(32) NOT NULL,
+    item_in_shop_id varchar(32) NOT NULL,
     transaction_datetime timestamp NOT NULL,
     purchase_reference varchar(64) NOT NULL,
-    PRIMARY KEY (ID),
-    UNIQUE (ID, customer_ID, item_in_shop_ID),
-    FOREIGN KEY (customer_ID) REFERENCES customers (user_ID),
-    FOREIGN KEY (item_in_shop_ID) REFERENCES items_in_shop (ID)
+    PRIMARY KEY (id),
+    UNIQUE (id, customer_id, item_in_shop_id),
+    FOREIGN KEY (customer_id) REFERENCES customers (user_id),
+    FOREIGN KEY (item_in_shop_id) REFERENCES items_in_shop (id)
 );
 
 -- Rides, and Tickets
@@ -142,15 +142,15 @@ CREATE TABLE transactions (
 -- Section that focuses on rides, ticket purchase, and ticket usage.
 
 CREATE TABLE rides (
-    ID varchar(32) NOT NULL,
-    picture_collection_ID varchar(32),
+    id varchar(32) NOT NULL,
+    picture_collection_id varchar(32),
     name varchar(32) NOT NULL,
     description varchar(128),
     min_age integer,
     min_height integer,
     longitude integer,
     latitude integer,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (id),
     UNIQUE (name),
     CHECK (name <> ''),
     CHECK (longitude >= - 180 AND longitude <= 180),
@@ -160,38 +160,38 @@ CREATE TABLE rides (
 );
 
 CREATE TABLE reviews (
-    ID varchar(32) NOT NULL,
-    ride_ID varchar(32) NOT NULL,
-    customer_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    ride_id varchar(32) NOT NULL,
+    customer_id varchar(32) NOT NULL,
     rating integer NOT NULL,
     title text,
     content text,
-    PRIMARY KEY (ID),
-    UNIQUE (ID, ride_ID, customer_ID),
-    FOREIGN KEY (ride_ID) REFERENCES rides (ID),
-    FOREIGN KEY (customer_ID) REFERENCES customers (user_ID),
+    PRIMARY KEY (id),
+    UNIQUE (id, ride_id, customer_id),
+    FOREIGN KEY (ride_id) REFERENCES rides (id),
+    FOREIGN KEY (customer_id) REFERENCES customers (user_id),
     CHECK (rating >= 1 AND rating <= 5)
 );
 
 CREATE TABLE tickets (
-    ID varchar(32) NOT NULL,
-    user_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    user_id varchar(32) NOT NULL,
     is_kid boolean DEFAULT TRUE NOT NULL,
     puchase_price numeric(10, 2) NOT NULL,
     puchased_on timestamp NOT NULL,
     purchase_reference varchar(64) NOT NULL,
-    PRIMARY KEY (ID),
-    FOREIGN KEY (user_ID) REFERENCES customers (user_ID)
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES customers (user_id)
 );
 
 CREATE TABLE tickets_on_rides (
-    ID varchar(32) NOT NULL,
-    ride_ID varchar(32) NOT NULL,
-    ticket_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    ride_id varchar(32) NOT NULL,
+    ticket_id varchar(32) NOT NULL,
     scan_datetime timestamp NOT NULL,
-    PRIMARY KEY (ID),
-    FOREIGN KEY (ride_ID) REFERENCES rides (ID),
-    FOREIGN KEY (ticket_ID) REFERENCES tickets (ID)
+    PRIMARY KEY (id),
+    FOREIGN KEY (ride_id) REFERENCES rides (id),
+    FOREIGN KEY (ticket_id) REFERENCES tickets (id)
 );
 
 -- Employees
@@ -199,32 +199,32 @@ CREATE TABLE tickets_on_rides (
 -- Section that focuses on employees and their schedule on rides.
 
 CREATE TABLE roles (
-    ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
     role varchar(16) NOT NULL,
     hourly_rate numeric(10, 2) NOT NULL,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (id),
     UNIQUE (ROLE),
     CHECK (hourly_rate >= 0)
 );
 
 CREATE TABLE employees (
-    ID varchar(32) NOT NULL,
-    user_ID varchar(32) NOT NULL,
-    role_ID varchar(32) NOT NULL,
-    PRIMARY KEY (ID),
-    FOREIGN KEY (user_ID) REFERENCES users (ID),
-    FOREIGN KEY (role_ID) REFERENCES roles (ID)
+    id varchar(32) NOT NULL,
+    user_id varchar(32) NOT NULL,
+    role_id varchar(32) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (role_id) REFERENCES roles (id)
 );
 
 CREATE TABLE employees_on_rides (
-    ID varchar(32) NOT NULL,
-    ride_ID varchar(32) NOT NULL,
-    employee_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    ride_id varchar(32) NOT NULL,
+    employee_id varchar(32) NOT NULL,
     start_datetime timestamp NOT NULL,
     end_datetime timestamp,
-    PRIMARY KEY (ID),
-    FOREIGN KEY (ride_ID) REFERENCES rides (ID),
-    FOREIGN KEY (employee_ID) REFERENCES employees (ID),
+    PRIMARY KEY (id),
+    FOREIGN KEY (ride_id) REFERENCES rides (id),
+    FOREIGN KEY (employee_id) REFERENCES employees (id),
     CHECK (start_datetime <= end_datetime)
 );
 
@@ -233,36 +233,36 @@ CREATE TABLE employees_on_rides (
 -- Section that focuses on rides maintenance.
 
 CREATE TABLE maintenance_types (
-    ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
     maintenance_type varchar(16) NOT NULL,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (id),
     UNIQUE (maintenance_type)
 );
 
 CREATE TABLE rides_maintenance (
-    ID varchar(32) NOT NULL,
-    ride_ID varchar(32) NOT NULL,
-    maintenance_type_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    ride_id varchar(32) NOT NULL,
+    maintenance_type_id varchar(32) NOT NULL,
     description varchar(128),
     cost numeric(10, 2),
     start_datetime timestamp NOT NULL,
     end_datetime timestamp,
-    PRIMARY KEY (ID, ride_ID),
-    UNIQUE (ID),
-    FOREIGN KEY (ride_ID) REFERENCES rides (ID),
-    FOREIGN KEY (maintenance_type_ID) REFERENCES maintenance_types (ID),
+    PRIMARY KEY (id, ride_id),
+    UNIQUE (id),
+    FOREIGN KEY (ride_id) REFERENCES rides (id),
+    FOREIGN KEY (maintenance_type_id) REFERENCES maintenance_types (id),
     CHECK (start_datetime <= end_datetime)
 );
 
 CREATE TABLE employees_on_maintenance (
-    ID varchar(32) NOT NULL,
-    maintenance_ID varchar(32) NOT NULL,
-    employee_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    maintenance_id varchar(32) NOT NULL,
+    employee_id varchar(32) NOT NULL,
     start_datetime timestamp NOT NULL,
     end_datetime timestamp,
-    PRIMARY KEY (ID, maintenance_ID, employee_ID),
-    FOREIGN KEY (maintenance_ID) REFERENCES rides_maintenance (ID),
-    FOREIGN KEY (employee_ID) REFERENCES employees (ID),
+    PRIMARY KEY (id, maintenance_id, employee_id),
+    FOREIGN KEY (maintenance_id) REFERENCES rides_maintenance (id),
+    FOREIGN KEY (employee_id) REFERENCES employees (id),
     CHECK (start_datetime <= end_datetime)
 );
 
@@ -271,20 +271,20 @@ CREATE TABLE employees_on_maintenance (
 -- Section that focuses on the event board (rainouts, specials, etc).
 
 CREATE TABLE event_types (
-    ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
     event_type varchar(32) NOT NULL,
-    PRIMARY KEY (ID),
+    PRIMARY KEY (id),
     UNIQUE (event_type)
 );
 
 CREATE TABLE events (
-    ID varchar(32) NOT NULL,
-    employee_ID varchar(32) NOT NULL,
-    event_type_ID varchar(32) NOT NULL,
+    id varchar(32) NOT NULL,
+    employee_id varchar(32) NOT NULL,
+    event_type_id varchar(32) NOT NULL,
     title varchar(32) NOT NULL,
     description varchar(128) NOT NULL,
     posted_on timestamp NOT NULL,
-    PRIMARY KEY (ID),
-    FOREIGN KEY (employee_ID) REFERENCES employees (ID),
-    FOREIGN KEY (event_type_ID) REFERENCES event_types (ID)
+    PRIMARY KEY (id),
+    FOREIGN KEY (employee_id) REFERENCES employees (id),
+    FOREIGN KEY (event_type_id) REFERENCES event_types (id)
 );

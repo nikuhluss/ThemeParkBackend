@@ -7,6 +7,7 @@ import (
 type MaintenanceRepository interface {
 	GetByID(ID string) (*models.Maintenance, error)
 	Fetch() ([]*models.Maintenance, error)
+	FetchByRideID(rideID string) ([]*models.Maintenance, error)
 	Store(*models.Maintenance) error
 	Update(*models.Maintenance) error
 	Delete(ID string) error
