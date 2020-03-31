@@ -7,15 +7,15 @@ type Ride struct {
 	Description    string
 	MinAge         int `db:"min_age"`
 	MinHeight      int `db:"min_height"`
-	Longitude      int
-	Latitude       int
+	Longitude      float64
+	Latitude       float64
 	Pictures       []*Picture
 	Reviews        []*Review
 	ReviewsAverage int
 }
 
 // NewRide creates a new Ride instance.
-func NewRide(ID, name, description string, minAge, minHeight, longitude, latitude int) *Ride {
+func NewRide(ID, name, description string, minAge, minHeight int, longitude, latitude float64) *Ride {
 	return &Ride{
 		ID:             ID,
 		Name:           name,

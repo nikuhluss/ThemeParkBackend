@@ -12,6 +12,11 @@ type PictureRepository struct {
 	db *sqlx.DB
 }
 
+// NewPictureRepository returns a new PictureRepository
+func NewPictureRepository(db *sqlx.DB) *PictureRepository {
+	return &PictureRepository{db}
+}
+
 // GetByID fetches a single picture using the given ID.
 func (pr *PictureRepository) GetByID(ID string) (*models.Picture, error) {
 	db := pr.db

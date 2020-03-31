@@ -3,12 +3,19 @@ package impl
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/sync/errgroup"
 
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/mathutil"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 	repositories "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/repositories"
+)
+
+var (
+	errRideExists        = fmt.Errorf("ride with the given ID already exists")
+	errRideDoesNotExists = fmt.Errorf("ride with he given ID does not exists")
 )
 
 // RideUsecaseImpl implements the RideUsecase interface.
@@ -43,18 +50,25 @@ func (ru *RideUsecaseImpl) GetByID(ctx context.Context, ID string) (*models.Ride
 		return nil, fmt.Errorf("error fetching ride: %s", err)
 	}
 
-	reviews, err := ru.reviewRepo.FetchForRideSortedByDate(ride.ID)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching ride reviews: %s", err)
-	}
-
 	pictures, err := ru.pictureRepo.FetchByCollectionID(ride.ID)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching ride pictures: %s", err)
 	}
 
-	ride.Reviews = reviews
+	reviews, err := ru.reviewRepo.FetchForRideSortedByDate(ride.ID)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching ride reviews: %s", err)
+	}
+
+	reviewsTotal := 0
+	for _, review := range reviews {
+		reviewsTotal += review.Rating
+	}
+
 	ride.Pictures = pictures
+	ride.Reviews = reviews
+	ride.ReviewsAverage = reviewsTotal / len(reviews)
+
 	return ride, nil
 }
 
@@ -70,19 +84,14 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 	defer cancel()
 	eg, _ := errgroup.WithContext(timeoutContext)
 
-	// the following section fetches reviews and pictures in parallel
+	// the following section fetches reviews to calculate review averages
 
-	type RideReviews struct {
-		rideID  string
-		reviews []*models.Review
-	}
-	type RidePictures struct {
-		rideID   string
-		pictures []*models.Picture
+	type RideReviewsAverage struct {
+		rideID         string
+		reviewsAverage int
 	}
 
-	chanReviews := make(chan RideReviews)
-	chanPictures := make(chan RidePictures)
+	chanReviewAverages := make(chan RideReviewsAverage)
 
 	for _, ride := range rides {
 		rideID := ride.ID
@@ -93,19 +102,15 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 				return err
 			}
 
-			chanReviews <- RideReviews{rideID, reviews}
-			return nil
-		})
-
-		eg.Go(func() error {
-			pictures, err := ru.pictureRepo.FetchByCollectionID(rideID)
-			if err != nil {
-				return err
+			reviewsTotal := 0
+			for _, review := range reviews {
+				reviewsTotal += review.Rating
 			}
 
-			chanPictures <- RidePictures{rideID, pictures}
+			chanReviewAverages <- RideReviewsAverage{rideID, reviewsTotal / len(reviews)}
 			return nil
 		})
+
 	}
 
 	// close channels if error group returns from Wait
@@ -116,8 +121,7 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 			// TODO: log error
 			return
 		}
-		close(chanReviews)
-		close(chanPictures)
+		close(chanReviewAverages)
 	}()
 
 	err = eg.Wait()
@@ -125,35 +129,16 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 		return nil, err
 	}
 
-	// iterates over channels and marges rides, reviews channel, and pictures channel
+	// iterates over channels and merges with rides
 
 	ridesMap := make(map[string]*models.Ride)
 	for _, ride := range rides {
 		ridesMap[ride.ID] = ride
 	}
 
-	reviewsOk := true
-	picturesOk := true
-
-	for reviewsOk || picturesOk {
-		select {
-		case rideReviews, reviewsOk := <-chanReviews:
-			if !reviewsOk {
-				continue
-			}
-
-			if ride, ok := ridesMap[rideReviews.rideID]; ok {
-				ride.Reviews = rideReviews.reviews
-			}
-
-		case ridePictures, picturesOk := <-chanPictures:
-			if !picturesOk {
-				continue
-			}
-
-			if ride, ok := ridesMap[ridePictures.rideID]; ok {
-				ride.Pictures = ridePictures.pictures
-			}
+	for rideReviewsAverage := range chanReviewAverages {
+		if ride, ok := ridesMap[rideReviewsAverage.rideID]; ok {
+			ride.ReviewsAverage = rideReviewsAverage.reviewsAverage
 		}
 	}
 
@@ -163,15 +148,79 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 // Store creates a new ride in the repository if a ride with the same ID
 // doesn't exists already.
 func (ru *RideUsecaseImpl) Store(ctx context.Context, ride *models.Ride) error {
+	_, err := ru.rideRepo.GetByID(ride.ID)
+	if err == nil {
+		return errRideExists
+	}
+
+	cleanRide(ride)
+	err = validateRide(ride)
+	if err != nil {
+		return err
+	}
+
+	err = ru.rideRepo.Store(ride)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Update updates an existing ride in the repository.
 func (ru *RideUsecaseImpl) Update(ctx context.Context, ride *models.Ride) error {
+	_, err := ru.rideRepo.GetByID(ride.ID)
+	if err != nil {
+		return errRideDoesNotExists
+	}
+
+	cleanRide(ride)
+	err = validateRide(ride)
+	if err != nil {
+		return err
+	}
+
+	err = ru.rideRepo.Update(ride)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Delete deletes an existing ride from the repository.
 func (ru *RideUsecaseImpl) Delete(ctx context.Context, ID string) error {
+	_, err := ru.rideRepo.GetByID(ID)
+	if err != nil {
+		return errRideDoesNotExists
+	}
+
+	err = ru.rideRepo.Delete(ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func cleanRide(ride *models.Ride) {
+	ride.ID = strings.TrimSpace(ride.ID)
+	ride.Name = strings.TrimSpace(ride.Name)
+	ride.Description = strings.TrimSpace(ride.Description)
+	ride.MinAge = mathutil.ClampInt(ride.MinHeight, 0, 200)
+	ride.MinHeight = mathutil.ClampInt(ride.MinHeight, 0, 400)
+	ride.Longitude = mathutil.ClampFloat64(ride.Longitude, -180, 180)
+	ride.Latitude = mathutil.ClampFloat64(ride.Latitude, -90, 90)
+}
+
+func validateRide(ride *models.Ride) error {
+	if len(ride.ID) <= 0 {
+		return fmt.Errorf("validateRide: ride must have a non-empty ID")
+	}
+
+	if len(ride.Name) <= 0 {
+		return fmt.Errorf("validateRide: ride must have a non-empty name")
+	}
+
 	return nil
 }

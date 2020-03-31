@@ -69,10 +69,10 @@ func TestGetRidesByIDSucceeds(t *testing.T) {
 		assert.Equal(t, tt.rideID, ride.ID)
 		assert.Equal(t, tt.rideID+"--name", ride.Name)
 		assert.Equal(t, tt.rideID+"--description", ride.Description)
-		assert.Equal(t, int(idx+1), int(ride.MinAge))
-		assert.Equal(t, int(idx+1), int(ride.MinHeight))
-		assert.Equal(t, int(idx+1), int(ride.Longitude))
-		assert.Equal(t, int(idx+1), int(ride.Latitude))
+		assert.Equal(t, idx+1, ride.MinAge)
+		assert.Equal(t, idx+1, ride.MinHeight)
+		assert.Equal(t, float64(idx+1), ride.Longitude)
+		assert.Equal(t, float64(idx+1), ride.Latitude)
 	}
 }
 
