@@ -100,31 +100,10 @@ func TestRideFetchSucceeds(t *testing.T) {
 }
 
 func TestStoreRideSucceeds(t *testing.T) {
-	rideRepository, db, teardown := RideRepositoryFixture()
+	rideRepository, _, teardown := RideRepositoryFixture()
 	defer teardown()
 
-	setupTestRides(db)
-
-	reviews := []*models.Review{
-		&models.Review{
-			ID:      "review--A",
-			RideID:  "ride--D",
-			UserID:  "user--A",
-			Title:   "the best ride",
-			Content: "i like this ride",
-			Rating:  5,
-		},
-	}
-
-	pictures := []*models.Picture{
-		&models.Picture{
-			ID:     "pic--A",
-			Format: "image/png",
-			Data:   []byte{0},
-		},
-	}
-
-	ride := models.NewRide("ride--D", "ride--D--name", "ride--D--description", 4, 4, 4, 4, pictures, reviews)
+	ride := models.NewRide("ride--D", "ride--D--name", "ride--D--description", 4, 4, 4, 4)
 	err := rideRepository.Store(ride)
 	if !assert.Nil(t, err) {
 		t.FailNow()
@@ -143,7 +122,7 @@ func TestStoreRideSucceeds(t *testing.T) {
 
 }
 
-func TestUpdateRideSucceeds(t *testing.T){
+func TestUpdateRideSucceeds(t *testing.T) {
 	rideRepository, db, teardown := RideRepositoryFixture()
 	defer teardown()
 
@@ -154,27 +133,8 @@ func TestUpdateRideSucceeds(t *testing.T){
 		t.FailNow()
 	}
 
-	reviews := []*models.Review{
-		&models.Review{
-			ID:      "review--A",
-			RideID:  "ride--D",
-			UserID:  "user--A",
-			Title:   "the best ride",
-			Content: "i like this ride",
-			Rating:  5,
-		},
-	}
+	expectedRide := models.NewRide(ride.ID, "ride--D--name", "ride--D--description", 4, 4, 4, 4)
 
-	pictures := []*models.Picture{
-		&models.Picture{
-			ID:     "pic--A",
-			Format: "image/png",
-			Data:   []byte{0},
-		},
-	}
-
-	expectedRide := models.NewRide(ride.ID, "ride--D--name", "ride--D--description", 4, 4, 4, 4, pictures, reviews)
-	
 	err = rideRepository.Update(expectedRide)
 	if !assert.Nil(t, err) {
 		t.FailNow()
@@ -191,10 +151,9 @@ func TestUpdateRideSucceeds(t *testing.T){
 	assert.Equal(t, expectedRide.MinAge, updatedRide.MinAge)
 	assert.Equal(t, expectedRide.MinHeight, updatedRide.MinHeight)
 
-
 }
 
-func TestDeleteRideSucceeds(t *testing.T){
+func TestDeleteRideSucceeds(t *testing.T) {
 	rideRepository, db, teardown := RideRepositoryFixture()
 	defer teardown()
 
@@ -209,4 +168,3 @@ func TestDeleteRideSucceeds(t *testing.T){
 	assert.Nil(t, ride)
 	assert.NotNil(t, err)
 }
-
