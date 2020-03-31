@@ -1,4 +1,4 @@
-package postgres
+package postgres_test
 
 import (
 	//"database/sql"
@@ -9,26 +9,11 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
-	//"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
 // Fixtures
 // --------------------------------
-
-func MaintenanceRepositoryFixture() (*MaintenanceRepository, *sqlx.DB, func()) {
-	dbconfig := testutil.NewDatabaseConnectionConfig()
-	db, err := testutil.NewDatabaseConnection(dbconfig)
-	if err != nil {
-		panic(fmt.Sprintf("maintenance_test.go: MaintenanceRepositoryFixture: %s", err))
-	}
-
-	maintenanceRepository := NewMaintenanceRepository(db)
-	return maintenanceRepository, db, func() {
-		db.Close()
-	}
-}
 
 func setupTestMaintenance(db *sqlx.DB) {
 
@@ -67,7 +52,7 @@ func setupTestMaintenance(db *sqlx.DB) {
 // Tests
 // --------------------------------
 func TestGetMaintenanceByIDSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)

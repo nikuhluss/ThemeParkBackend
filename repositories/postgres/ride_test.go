@@ -1,8 +1,8 @@
-package postgres
+package postgres_test
 
 import (
 	//"database/sql"
-	"fmt"
+
 	"testing"
 
 	//"time"
@@ -16,19 +16,6 @@ import (
 
 // Fixtures
 // --------------------------------
-
-func RideRepositoryFixture() (*RideRepository, *sqlx.DB, func()) {
-	dbconfig := testutil.NewDatabaseConnectionConfig()
-	db, err := testutil.NewDatabaseConnection(dbconfig)
-	if err != nil {
-		panic(fmt.Sprintf("ride_test.go: RideRepositoryFixture: %s", err))
-	}
-
-	rideRepository := NewRideRepository(db)
-	return rideRepository, db, func() {
-		db.Close()
-	}
-}
 
 func setupTestRides(db *sqlx.DB) {
 	db.MustExec("TRUNCATE TABLE rides CASCADE")
@@ -48,7 +35,7 @@ func setupTestRides(db *sqlx.DB) {
 // --------------------------------
 
 func TestGetRidesByIDSucceeds(t *testing.T) {
-	rideRepository, db, teardown := RideRepositoryFixture()
+	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
 	setupTestRides(db)
@@ -77,7 +64,7 @@ func TestGetRidesByIDSucceeds(t *testing.T) {
 }
 
 func TestGetByRideIDNoMatchFails(t *testing.T) {
-	rideRepository, _, teardown := RideRepositoryFixture()
+	rideRepository, _, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
 	ride, err := rideRepository.GetByID("some-unknown-ID")
@@ -86,7 +73,7 @@ func TestGetByRideIDNoMatchFails(t *testing.T) {
 }
 
 func TestRideFetchSucceeds(t *testing.T) {
-	rideRepository, db, teardown := RideRepositoryFixture()
+	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
 	setupTestRides(db)
@@ -100,7 +87,7 @@ func TestRideFetchSucceeds(t *testing.T) {
 }
 
 func TestStoreRideSucceeds(t *testing.T) {
-	rideRepository, _, teardown := RideRepositoryFixture()
+	rideRepository, _, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
 	ride := models.NewRide("ride--D", "ride--D--name", "ride--D--description", 4, 4, 4, 4)
@@ -123,7 +110,7 @@ func TestStoreRideSucceeds(t *testing.T) {
 }
 
 func TestUpdateRideSucceeds(t *testing.T) {
-	rideRepository, db, teardown := RideRepositoryFixture()
+	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
 	setupTestRides(db)
@@ -154,7 +141,7 @@ func TestUpdateRideSucceeds(t *testing.T) {
 }
 
 func TestDeleteRideSucceeds(t *testing.T) {
-	rideRepository, db, teardown := RideRepositoryFixture()
+	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
 	setupTestRides(db)

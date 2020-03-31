@@ -1,7 +1,6 @@
-package postgres
+package postgres_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -14,19 +13,6 @@ import (
 // Fixtures
 // --------------------------------
 
-func PictureRepositoryFixture() (*PictureRepository, *sqlx.DB, func()) {
-	dbconfig := testutil.NewDatabaseConnectionConfig()
-	db, err := testutil.NewDatabaseConnection(dbconfig)
-	if err != nil {
-		panic(fmt.Sprintf("picture_test.go: PictureRepositoryFixture: %s", err))
-	}
-
-	pictureRepository := &PictureRepository{db}
-	return pictureRepository, db, func() {
-		db.Close()
-	}
-}
-
 func truncatePictures(db *sqlx.DB) {
 	db.MustExec("TRUNCATE TABLE pictures CASCADE")
 	db.MustExec("TRUNCATE TABLE picture_collections CASCADE")
@@ -36,7 +22,7 @@ func truncatePictures(db *sqlx.DB) {
 // --------------------------------
 
 func TestStoreSucceeds(t *testing.T) {
-	pictureRepository, db, teardown := PictureRepositoryFixture()
+	pictureRepository, db, teardown := testutil.MakePictureRepositoryFixture()
 	defer teardown()
 
 	truncatePictures(db)
