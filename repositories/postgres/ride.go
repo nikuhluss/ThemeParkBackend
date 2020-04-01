@@ -16,7 +16,7 @@ type RideRepository struct {
 	db *sqlx.DB
 }
 
-// NewUserRepository creates a new UserRepository instance using the given
+// NewRideRepository creates a new RideRepository instance using the given
 // database instance.
 func NewRideRepository(db *sqlx.DB) *RideRepository {
 	return &RideRepository{db}

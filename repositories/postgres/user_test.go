@@ -1,8 +1,7 @@
-package postgres
+package postgres_test
 
 import (
 	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
@@ -15,19 +14,6 @@ import (
 
 // Fixtures
 // --------------------------------
-
-func UserRepositoryFixture() (*UserRepository, *sqlx.DB, func()) {
-	dbconfig := testutil.NewDatabaseConnectionConfig()
-	db, err := testutil.NewDatabaseConnection(dbconfig)
-	if err != nil {
-		panic(fmt.Sprintf("user_test.go: UserRepositoryFixture: %s", err))
-	}
-
-	userRepository := NewUserRepository(db)
-	return userRepository, db, func() {
-		db.Close()
-	}
-}
 
 func setupTestUsers(db *sqlx.DB) {
 	db.MustExec("TRUNCATE TABLE users CASCADE")
@@ -96,7 +82,7 @@ func assertUserDetailsEqual(t *testing.T, expected *models.User, actual *models.
 // --------------------------------
 
 func TestGetByIDSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -133,16 +119,16 @@ func TestGetByIDSucceeds(t *testing.T) {
 }
 
 func TestGetByIDNoMatchFails(t *testing.T) {
-	UserRepository, _, teardown := UserRepositoryFixture()
+	userRepository, _, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
-	user, err := UserRepository.GetByID("some-unknown-ID")
+	user, err := userRepository.GetByID("some-unknown-ID")
 	assert.Nil(t, user)
 	assert.NotNil(t, err)
 }
 
 func TestFetchSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -156,7 +142,7 @@ func TestFetchSucceeds(t *testing.T) {
 }
 
 func TestFetchCustomersSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -170,7 +156,7 @@ func TestFetchCustomersSucceeds(t *testing.T) {
 }
 
 func TestFetchEmployeesSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -184,7 +170,7 @@ func TestFetchEmployeesSucceeds(t *testing.T) {
 }
 
 func TestStoreCustomerSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -205,7 +191,7 @@ func TestStoreCustomerSucceeds(t *testing.T) {
 }
 
 func TestStoreEmployeeSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -228,7 +214,7 @@ func TestStoreEmployeeSucceeds(t *testing.T) {
 }
 
 func TestUpdateCustomerSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -261,7 +247,7 @@ func TestUpdateCustomerSucceeds(t *testing.T) {
 }
 
 func TestDeleteUserSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -278,7 +264,7 @@ func TestDeleteUserSucceeds(t *testing.T) {
 }
 
 func TestUpdatePasswordSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)
@@ -299,7 +285,7 @@ func TestUpdatePasswordSucceeds(t *testing.T) {
 }
 
 func TestGetAllGendersSucceeds(t *testing.T) {
-	userRepository, db, teardown := UserRepositoryFixture()
+	userRepository, db, teardown := testutil.MakeUserRepositoryFixture()
 	defer teardown()
 
 	setupTestUsers(db)

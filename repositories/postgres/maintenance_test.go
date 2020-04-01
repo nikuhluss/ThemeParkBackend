@@ -1,4 +1,4 @@
-package postgres
+package postgres_test
 
 import (
 	"database/sql"
@@ -9,26 +9,12 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
 // Fixtures
 // --------------------------------
-
-func MaintenanceRepositoryFixture() (*MaintenanceRepository, *sqlx.DB, func()) {
-	dbconfig := testutil.NewDatabaseConnectionConfig()
-	db, err := testutil.NewDatabaseConnection(dbconfig)
-	if err != nil {
-		panic(fmt.Sprintf("maintenance_test.go: MaintenanceRepositoryFixture: %s", err))
-	}
-
-	maintenanceRepository := NewMaintenanceRepository(db)
-	return maintenanceRepository, db, func() {
-		db.Close()
-	}
-}
 
 func setupTestMaintenance(db *sqlx.DB) {
 
@@ -67,7 +53,7 @@ func setupTestMaintenance(db *sqlx.DB) {
 // Tests
 // --------------------------------
 func TestGetMaintenanceByIDSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
@@ -131,7 +117,7 @@ func TestStoreMaintenanceSucceeds(t *testing.T) {
 	setupTestMaintenance(db)
 
 	users := []*models.User{
-		models.NewEmployee("user--D", "user--D--email", "user--D--passS","user--D--passH", "Ride Manager", 22),
+		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
 	}
 
 	maintenance := models.NewMaintenance("maintenance--D", "maintenance--A--ride", "Tune up", "maintenance--D--description", 60, time.Now(), users)
@@ -161,14 +147,14 @@ func TestUpdateMaintenanceSucceeds(t *testing.T) {
 	}
 
 	users := []*models.User{
-		models.NewEmployee("user--D", "user--D--email", "user--D--passS","user--D--passH", "Ride Manager", 22),
+		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
 	}
-	
+
 	expectedMaintenance := models.NewMaintenance(maintenance.ID, "maintenance--B--ride", "Replacement", "maintenance--A--new Description", 70, time.Now(), users)
 	var p sql.NullTime
 	p.Time = time.Now()
 	expectedMaintenance.End = p
-	
+
 	err = maintenanceRepository.Update(expectedMaintenance)
 	if !assert.Nil(t, err) {
 		t.FailNow()
@@ -201,7 +187,7 @@ func TestDeleteMaintenanceSucceeds(t *testing.T) {
 	maintenance, err := maintenanceRepository.GetByID("maintenance--C")
 	assert.Nil(t, maintenance)
 	assert.NotNil(t, err)
-} 
+}
 
 func TestGetAllMaintenanceTypesSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
