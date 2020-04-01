@@ -16,3 +16,15 @@ type Maintenance struct {
 	End             sql.NullTime `db:"end_datetime"`
 	Assignees       []*User
 }
+
+func NewMaintenance(ID, rideID, maintenanceType, description string, cost float64, start time.Time, assignees []*User) *Maintenance{
+	return &Maintenance{
+		ID:               ID,
+		RideID:           rideID,
+		MaintenanceType:  maintenanceType,
+		Description:      description,
+		Cost:             cost,
+		Start:            start,
+		Assignees:        assignees,
+	}
+}
