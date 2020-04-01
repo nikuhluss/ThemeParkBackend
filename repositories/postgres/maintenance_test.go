@@ -1,7 +1,7 @@
 package postgres_test
 
 import (
-	//"database/sql"
+	"database/sql"
 	"fmt"
 	"testing"
 
@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
 // Fixtures
@@ -80,4 +81,127 @@ func TestGetMaintenanceByIDSucceeds(t *testing.T) {
 		assert.Equal(t, tt.maintenanceID+"--description", maintenance.Description)
 		assert.Equal(t, int(idx+1), int(maintenance.Cost))
 	}
+}
+
+func TestFetchMaintenanceSucceeds(t *testing.T) {
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
+	defer teardown()
+
+	setupTestMaintenance(db)
+
+	maintenance, err := maintenanceRepository.Fetch()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Len(t, maintenance, 3)
+}
+
+func TestFetchByRideIDSucceeds(t *testing.T) {
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
+	defer teardown()
+
+	setupTestMaintenance(db)
+	maintenance, err := maintenanceRepository.FetchByRideID("maintenance--A--ride")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Len(t, maintenance, 1)
+}
+
+func TestStoreMaintenanceSucceeds(t *testing.T) {
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
+	defer teardown()
+
+	setupTestMaintenance(db)
+
+	users := []*models.User{
+		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
+	}
+
+	maintenance := models.NewMaintenance("maintenance--D", "maintenance--A--ride", "Tune up", "maintenance--D--description", 60, time.Now(), users)
+	err := maintenanceRepository.Store(maintenance)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	maintenanceOut, err := maintenanceRepository.GetByID(maintenance.ID)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.NotNil(t, maintenanceOut)
+
+}
+
+func TestUpdateMaintenanceSucceeds(t *testing.T) {
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
+	defer teardown()
+
+	setupTestMaintenance(db)
+
+	maintenance, err := maintenanceRepository.GetByID("maintenance--A")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	users := []*models.User{
+		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
+	}
+
+	expectedMaintenance := models.NewMaintenance(maintenance.ID, "maintenance--B--ride", "Replacement", "maintenance--A--new Description", 70, time.Now(), users)
+	var p sql.NullTime
+	p.Time = time.Now()
+	expectedMaintenance.End = p
+
+	err = maintenanceRepository.Update(expectedMaintenance)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	updatedMaintenance, err := maintenanceRepository.GetByID("maintenance--A")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, expectedMaintenance.ID, updatedMaintenance.ID)
+	assert.Equal(t, expectedMaintenance.RideID, updatedMaintenance.RideID)
+	assert.Equal(t, expectedMaintenance.MaintenanceType, updatedMaintenance.MaintenanceType)
+	assert.Equal(t, expectedMaintenance.Description, updatedMaintenance.Description)
+	assert.Equal(t, expectedMaintenance.Cost, updatedMaintenance.Cost)
+
+}
+
+func TestDeleteMaintenanceSucceeds(t *testing.T) {
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
+	defer teardown()
+
+	setupTestMaintenance(db)
+
+	err := maintenanceRepository.Delete("maintenance--C")
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	maintenance, err := maintenanceRepository.GetByID("maintenance--C")
+	assert.Nil(t, maintenance)
+	assert.NotNil(t, err)
+}
+
+func TestGetAllMaintenanceTypesSucceeds(t *testing.T) {
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
+	defer teardown()
+
+	setupTestMaintenance(db)
+
+	maintenanceTypes, err := maintenanceRepository.AvailableMaintenanceTypes()
+
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, "Tune up", maintenanceTypes[0])
+	assert.Equal(t, "Fixed", maintenanceTypes[1])
+	assert.Equal(t, "Replacement", maintenanceTypes[2])
 }

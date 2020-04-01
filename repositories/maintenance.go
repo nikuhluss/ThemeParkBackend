@@ -11,4 +11,5 @@ type MaintenanceRepository interface {
 	Store(*models.Maintenance) error
 	Update(*models.Maintenance) error
 	Delete(ID string) error
+	AvailableMaintenanceTypes() ([]string, error)
 }
