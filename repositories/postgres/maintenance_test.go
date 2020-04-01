@@ -84,7 +84,7 @@ func TestGetMaintenanceByIDSucceeds(t *testing.T) {
 }
 
 func TestFetchMaintenanceSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
@@ -98,7 +98,7 @@ func TestFetchMaintenanceSucceeds(t *testing.T) {
 }
 
 func TestFetchByRideIDSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
@@ -111,7 +111,7 @@ func TestFetchByRideIDSucceeds(t *testing.T) {
 }
 
 func TestStoreMaintenanceSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
@@ -136,7 +136,7 @@ func TestStoreMaintenanceSucceeds(t *testing.T) {
 }
 
 func TestUpdateMaintenanceSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
@@ -174,7 +174,7 @@ func TestUpdateMaintenanceSucceeds(t *testing.T) {
 }
 
 func TestDeleteMaintenanceSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
@@ -190,7 +190,7 @@ func TestDeleteMaintenanceSucceeds(t *testing.T) {
 }
 
 func TestGetAllMaintenanceTypesSucceeds(t *testing.T) {
-	maintenanceRepository, db, teardown := MaintenanceRepositoryFixture()
+	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
