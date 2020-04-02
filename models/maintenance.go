@@ -9,6 +9,7 @@ import (
 type Maintenance struct {
 	ID              string
 	RideID          string `db:"ride_id"`
+	RideName        string `db:"ride_name"`
 	MaintenanceType string `db:"maintenance_type"`
 	Description     string
 	Cost            float64
@@ -17,14 +18,16 @@ type Maintenance struct {
 	Assignees       []*User
 }
 
-func NewMaintenance(ID, rideID, maintenanceType, description string, cost float64, start time.Time, assignees []*User) *Maintenance{
+// NewMaintenance returns a new Maintenance instance.
+func NewMaintenance(ID, rideID, rideName, maintenanceType, description string, cost float64, start time.Time, assignees []*User) *Maintenance {
 	return &Maintenance{
-		ID:               ID,
-		RideID:           rideID,
-		MaintenanceType:  maintenanceType,
-		Description:      description,
-		Cost:             cost,
-		Start:            start,
-		Assignees:        assignees,
+		ID:              ID,
+		RideID:          rideID,
+		RideName:        rideName,
+		MaintenanceType: maintenanceType,
+		Description:     description,
+		Cost:            cost,
+		Start:           start,
+		Assignees:       assignees,
 	}
 }

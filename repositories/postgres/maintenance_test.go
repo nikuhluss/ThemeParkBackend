@@ -24,9 +24,9 @@ func setupTestMaintenance(db *sqlx.DB) {
 	`
 
 	db.MustExec("TRUNCATE TABLE rides CASCADE")
-	db.MustExec(rideInsertQuery, "maintenance--A--ride", "ride--A--picId", "ride--A--name", "ride--A--description", 1, 1, 1, 1)
-	db.MustExec(rideInsertQuery, "maintenance--B--ride", "ride--B--picId", "ride--B--name", "ride--B--description", 2, 2, 2, 2)
-	db.MustExec(rideInsertQuery, "maintenance--C--ride", "ride--C--picId", "ride--C--name", "ride--C--description", 3, 3, 3, 3)
+	db.MustExec(rideInsertQuery, "maintenance--A--ride-id", "ride--A--picId", "maintenance--A--ride-name", "ride--A--description", 1, 1, 1, 1)
+	db.MustExec(rideInsertQuery, "maintenance--B--ride-id", "ride--B--picId", "maintenance--B--ride-name", "ride--B--description", 2, 2, 2, 2)
+	db.MustExec(rideInsertQuery, "maintenance--C--ride-id", "ride--C--picId", "maintenance--C--ride-name", "ride--C--description", 3, 3, 3, 3)
 
 	MtypeInsertQuery := `
 	INSERT INTO maintenance_types (ID, maintenance_type)
@@ -44,9 +44,9 @@ func setupTestMaintenance(db *sqlx.DB) {
 	`
 
 	db.MustExec("TRUNCATE TABLE rides_maintenance CASCADE")
-	db.MustExec(MaintenanceInsertQuery, "maintenance--A", "maintenance--A--ride", "type--A", "maintenance--A--description", 1, time.Now(), time.Now())
-	db.MustExec(MaintenanceInsertQuery, "maintenance--B", "maintenance--B--ride", "type--B", "maintenance--B--description", 2, time.Now(), time.Now())
-	db.MustExec(MaintenanceInsertQuery, "maintenance--C", "maintenance--C--ride", "type--C", "maintenance--C--description", 3, time.Now(), time.Now())
+	db.MustExec(MaintenanceInsertQuery, "maintenance--A", "maintenance--A--ride-id", "type--A", "maintenance--A--description", 1, time.Now(), time.Now())
+	db.MustExec(MaintenanceInsertQuery, "maintenance--B", "maintenance--B--ride-id", "type--B", "maintenance--B--description", 2, time.Now(), time.Now())
+	db.MustExec(MaintenanceInsertQuery, "maintenance--C", "maintenance--C--ride-id", "type--C", "maintenance--C--description", 3, time.Now(), time.Now())
 
 }
 
@@ -76,7 +76,8 @@ func TestGetMaintenanceByIDSucceeds(t *testing.T) {
 		fmt.Println(">", maintenance)
 
 		assert.Equal(t, tt.maintenanceID, maintenance.ID)
-		assert.Equal(t, tt.maintenanceID+"--ride", maintenance.RideID)
+		assert.Equal(t, tt.maintenanceID+"--ride-id", maintenance.RideID)
+		assert.Equal(t, tt.maintenanceID+"--ride-name", maintenance.RideName)
 		assert.Equal(t, tt.expectedMaintenanceType, maintenance.MaintenanceType)
 		assert.Equal(t, tt.maintenanceID+"--description", maintenance.Description)
 		assert.Equal(t, int(idx+1), int(maintenance.Cost))
@@ -102,7 +103,7 @@ func TestFetchForRideSucceeds(t *testing.T) {
 	defer teardown()
 
 	setupTestMaintenance(db)
-	maintenance, err := maintenanceRepository.FetchForRide("maintenance--A--ride")
+	maintenance, err := maintenanceRepository.FetchForRide("maintenance--A--ride-id")
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
@@ -120,7 +121,7 @@ func TestStoreMaintenanceSucceeds(t *testing.T) {
 		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
 	}
 
-	maintenance := models.NewMaintenance("maintenance--D", "maintenance--A--ride", "Tune up", "maintenance--D--description", 60, time.Now(), users)
+	maintenance := models.NewMaintenance("maintenance--D", "maintenance--A--ride-id", "maintenance--A--ride-name", "Tune up", "maintenance--D--description", 60, time.Now(), users)
 	err := maintenanceRepository.Store(maintenance)
 	if !assert.Nil(t, err) {
 		t.FailNow()
@@ -150,7 +151,7 @@ func TestUpdateMaintenanceSucceeds(t *testing.T) {
 		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
 	}
 
-	expectedMaintenance := models.NewMaintenance(maintenance.ID, "maintenance--B--ride", "Replacement", "maintenance--A--new Description", 70, time.Now(), users)
+	expectedMaintenance := models.NewMaintenance(maintenance.ID, "maintenance--B--ride-id", "maintenance--B--ride-name", "Replacement", "maintenance--A--new Description", 70, time.Now(), users)
 	var p sql.NullTime
 	p.Time = time.Now()
 	expectedMaintenance.End = p
