@@ -159,6 +159,12 @@ func (ru *RideUsecaseImpl) Store(ctx context.Context, ride *models.Ride) error {
 		return err
 	}
 
+	uuid, err := GenerateUUID()
+	if err != nil {
+		return err
+	}
+
+	ride.ID = uuid
 	err = ru.rideRepo.Store(ride)
 	if err != nil {
 		return err

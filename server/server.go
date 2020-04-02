@@ -8,6 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
+
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/handlers"
 	repos "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/repositories/postgres"
 	usecases "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/usecases/impl"
 )
@@ -39,18 +41,27 @@ func Start(address string) error {
 		return err
 	}
 
-	userRepository := repos.NewUserRepository(db)
+	// repos
+
+	// userRepository := repos.NewUserRepository(db)
 	rideRepository := repos.NewRideRepository(db)
 	pictureRepository := repos.NewPictureRepository(db)
 	reviewRepository := repos.NewReviewRepository(db)
 	maintenanceRepository := repos.NewMaintenanceRepository(db)
 
-	timeout := time.Second * 2
+	// usecases
 
+	timeout := time.Second * 2
 	rideUsecase := usecases.NewRideUsecaseImpl(rideRepository, pictureRepository, reviewRepository, timeout)
 	maintenanceUsecase := usecases.NewMaintenanceUsecaseImpl(maintenanceRepository, timeout)
 
-	fmt.Println(userRepository, rideUsecase, maintenanceUsecase)
+	// handlers
+
+	rideHandler := handlers.NewRideHandler(rideUsecase, maintenanceUsecase)
+	err = rideHandler.Bind(e)
+	if err != nil {
+		return err
+	}
 
 	return e.Start(address)
 }

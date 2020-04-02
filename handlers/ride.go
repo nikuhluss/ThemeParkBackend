@@ -30,7 +30,7 @@ func (rh *RideHandler) Bind(e *echo.Echo) error {
 	e.GET("/rides/:rideID", rh.GetByID)
 	e.PUT("/rides/:rideID", rh.Update)
 	e.DELETE("/rides/:rideID", rh.Delete)
-	e.GET("/rides/:rideID/maintenance", rh.Maintenance)
+	e.GET("/rides/:rideID/maintenance", rh.FetchMaintenance)
 	return nil
 }
 
@@ -112,7 +112,15 @@ func (rh *RideHandler) Delete(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, "", Indent)
 }
 
-// Maintenance fetches all maintenance jobs for the given ride.
-func (rh *RideHandler) Maintenance(c echo.Context) error {
-	return nil
+// FetchMaintenance fetches all maintenance jobs for the given ride.
+func (rh *RideHandler) FetchMaintenance(c echo.Context) error {
+	ctx := c.Request().Context()
+	rideID := c.Param("rideID")
+
+	maintenance, err := rh.maintenanceUsecase.FetchForRide(ctx, rideID)
+	if err != nil {
+		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
+	}
+
+	return c.JSONPretty(http.StatusOK, maintenance, Indent)
 }

@@ -11,7 +11,8 @@ type MaintenanceUsecase interface {
 	GetByID(context.Context, string) (*models.Maintenance, error)
 	Fetch(context.Context) ([]*models.Maintenance, error)
 	FetchForRide(context.Context, string) ([]*models.Maintenance, error)
-	Store(context.Context, *models.Maintenance) error
+	Begin(context.Context, *models.Maintenance) error
 	Update(context.Context, *models.Maintenance) error
+	Close(context.Context, string) (*models.Maintenance, error)
 	Delete(context.Context, string) error
 }
