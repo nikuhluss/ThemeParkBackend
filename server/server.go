@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
 
@@ -34,6 +35,12 @@ func notImplemented(c echo.Context) error {
 func Start(address string) error {
 
 	e := echo.New()
+
+	// middleware
+
+	e.Use(middleware.Logger())
+
+	// database
 
 	dbconfig := testutil.NewDatabaseConnectionConfig()
 	db, err := testutil.NewDatabaseConnection(dbconfig)

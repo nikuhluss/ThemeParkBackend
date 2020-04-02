@@ -10,7 +10,7 @@ import (
 func main() {
 	err := server.Start(":5000")
 	if err != nil {
-		fmt.Printf("error stsarting server: %s\n", err)
+		fmt.Printf("error starting server: %s\n", err)
 		os.Exit(1)
 	}
 }
