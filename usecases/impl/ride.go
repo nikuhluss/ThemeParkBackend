@@ -10,7 +10,7 @@ import (
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/mathutil"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
-	repositories "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/repositories"
+	repos "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/repositories"
 )
 
 var (
@@ -20,18 +20,18 @@ var (
 
 // RideUsecaseImpl implements the RideUsecase interface.
 type RideUsecaseImpl struct {
-	rideRepo    repositories.RideRepository
-	pictureRepo repositories.PictureRepository
-	reviewRepo  repositories.ReviewRepository
+	rideRepo    repos.RideRepository
+	pictureRepo repos.PictureRepository
+	reviewRepo  repos.ReviewRepository
 	timeout     time.Duration
 }
 
 // NewRideUsecaseImpl returns a new RideUsecaseImpl instance. The timeout
 // parameter specifies a duration for each request before throwing and error.
 func NewRideUsecaseImpl(
-	rideRepo repositories.RideRepository,
-	pictureRepo repositories.PictureRepository,
-	reviewRepo repositories.ReviewRepository,
+	rideRepo repos.RideRepository,
+	pictureRepo repos.PictureRepository,
+	reviewRepo repos.ReviewRepository,
 	timeout time.Duration) *RideUsecaseImpl {
 
 	return &RideUsecaseImpl{
