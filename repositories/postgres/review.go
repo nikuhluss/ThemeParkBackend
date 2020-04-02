@@ -52,17 +52,39 @@ func (rr *ReviewRepository) Fetch() ([]*models.Review, error) {
 		return nil, err
 	}
 
-	return reviews, err
+	return reviews, nil
 }
 
 // FetchForRideSortedByRating fetches all reviews from the database for the given ride.
 func (rr *ReviewRepository) FetchForRideSortedByRating(rideID string) ([]*models.Review, error) {
-	return nil, fmt.Errorf("FetchForRideSortedByRating not implemented")
+	db := rr.db
+	udb := db.Unsafe()
+
+	query, _ := selectReviews.Where("ride_ID = ?").OrderBy("rating DESC").MustSql()
+
+	reviews := []*models.Review{}
+	err := udb.Select(&reviews, query, rideID)
+	if err != nil {
+		return nil, err
+	}
+
+	return reviews, nil
 }
 
 // FetchForRideSortedByDate fetches all reviews from the database for the given ride.
 func (rr *ReviewRepository) FetchForRideSortedByDate(rideID string) ([]*models.Review, error) {
-	return nil, fmt.Errorf("FetchForRideSortedByDate not implemented")
+	db := rr.db
+	udb := db.Unsafe()
+
+	query, _ := selectReviews.Where("ride_ID = ?").OrderBy("posted_on DESC").MustSql()
+
+	reviews := []*models.Review{}
+	err := udb.Select(&reviews, query, rideID)
+	if err != nil {
+		return nil, err
+	}
+
+	return reviews, nil
 }
 
 // Store creates an entry for the given review model in the database

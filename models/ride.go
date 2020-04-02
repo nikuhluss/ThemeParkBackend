@@ -2,16 +2,16 @@ package models
 
 // Ride is a struct that represents a ride in the park.
 type Ride struct {
-	ID             string
-	Name           string
-	Description    string
-	MinAge         int `db:"min_age"`
-	MinHeight      int `db:"min_height"`
-	Longitude      float64
-	Latitude       float64
-	Pictures       []*Picture
-	Reviews        []*Review
-	ReviewsAverage int
+	ID             string     `json:"id"`
+	Name           string     `json:"name"`
+	Description    string     `json:"description"`
+	MinAge         int        `db:"min_age" json:"minAge"`
+	MinHeight      int        `db:"min_height" json:"minHeight"`
+	Longitude      float64    `json:"longitude"`
+	Latitude       float64    `json:"latitude"`
+	Pictures       []*Picture `json:"pictures"`
+	Reviews        []*Review  `json:"reviews"`
+	ReviewsAverage int        `json:"reviewsAverage"`
 }
 
 // NewRide creates a new Ride instance.

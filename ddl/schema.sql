@@ -166,6 +166,7 @@ CREATE TABLE reviews (
     rating integer NOT NULL,
     title text,
     content text,
+    posted_on timestamp NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (id, ride_id, customer_id),
     FOREIGN KEY (ride_id) REFERENCES rides (id),

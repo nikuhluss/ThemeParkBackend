@@ -67,7 +67,10 @@ func (ru *RideUsecaseImpl) GetByID(ctx context.Context, ID string) (*models.Ride
 
 	ride.Pictures = pictures
 	ride.Reviews = reviews
-	ride.ReviewsAverage = reviewsTotal / len(reviews)
+	ride.ReviewsAverage = 0
+	if len(reviews) > 0 {
+		ride.ReviewsAverage = reviewsTotal / len(reviews)
+	}
 
 	return ride, nil
 }
@@ -107,7 +110,12 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 				reviewsTotal += review.Rating
 			}
 
-			chanReviewAverages <- RideReviewsAverage{rideID, reviewsTotal / len(reviews)}
+			reviewsAverage := 0
+			if len(reviews) > 0 {
+				reviewsAverage = reviewsTotal / len(reviews)
+			}
+
+			chanReviewAverages <- RideReviewsAverage{rideID, reviewsAverage}
 			return nil
 		})
 
@@ -124,11 +132,6 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 		close(chanReviewAverages)
 	}()
 
-	err = eg.Wait()
-	if err != nil {
-		return nil, err
-	}
-
 	// iterates over channels and merges with rides
 
 	ridesMap := make(map[string]*models.Ride)
@@ -142,6 +145,13 @@ func (ru *RideUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ride, error) {
 		}
 	}
 
+	// checks if the group returned error
+
+	err = eg.Wait()
+	if err != nil {
+		return nil, err
+	}
+
 	return rides, nil
 }
 
@@ -153,18 +163,18 @@ func (ru *RideUsecaseImpl) Store(ctx context.Context, ride *models.Ride) error {
 		return errRideExists
 	}
 
-	cleanRide(ride)
-	err = validateRide(ride)
-	if err != nil {
-		return err
-	}
-
 	uuid, err := GenerateUUID()
 	if err != nil {
 		return err
 	}
 
 	ride.ID = uuid
+	cleanRide(ride)
+	err = validateRide(ride)
+	if err != nil {
+		return err
+	}
+
 	err = ru.rideRepo.Store(ride)
 	if err != nil {
 		return err
@@ -221,11 +231,11 @@ func cleanRide(ride *models.Ride) {
 
 func validateRide(ride *models.Ride) error {
 	if len(ride.ID) <= 0 {
-		return fmt.Errorf("validateRide: ride must have a non-empty ID")
+		return fmt.Errorf("validateRide: ID must be non-empty")
 	}
 
 	if len(ride.Name) <= 0 {
-		return fmt.Errorf("validateRide: ride must have a non-empty name")
+		return fmt.Errorf("validateRide: name must be non-empty")
 	}
 
 	return nil

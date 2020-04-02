@@ -55,7 +55,7 @@ func (rr *MaintenanceRepository) Fetch() ([]*models.Maintenance, error) {
 		return nil, err
 	}
 
-	return maintenance, err
+	return maintenance, nil
 }
 
 // FetchForRide is similar to Fetch, but fetches for the given ride rather than all entries.
@@ -71,7 +71,7 @@ func (rr *MaintenanceRepository) FetchForRide(rideID string) ([]*models.Maintena
 		return nil, err
 	}
 
-	return maintenance, err
+	return maintenance, nil
 }
 
 // Store creates an entry for the given maintenance model in the database.
@@ -159,16 +159,17 @@ func (rr *MaintenanceRepository) Delete(ID string) error {
 	return nil
 }
 
+// AvailableMaintenanceTypes returns all the available maintenance types sorted in lexical order.
 func (rr *MaintenanceRepository) AvailableMaintenanceTypes() ([]string, error) {
 	db := rr.db
 	udb := db.Unsafe()
 
-	query, _ := psql.Select("DISTINCT maintenance_type").From("maintenance_types").MustSql()
+	query, _ := psql.Select("DISTINCT maintenance_type").From("maintenance_types").OrderBy("maintenance_type ASC").MustSql()
 	rows := []string{}
 	err := udb.Select(&rows, query)
 	if err != nil {
 		return nil, err
 	}
 
-	return rows, err
+	return rows, nil
 }

@@ -62,11 +62,9 @@ func (mu *MaintenanceUsecaseImpl) FetchForRide(ctx context.Context, rideID strin
 
 // Begin creates a new maintenance job in the repositories.
 func (mu *MaintenanceUsecaseImpl) Begin(ctx context.Context, maintenance *models.Maintenance) error {
-
-	cleanMaintenance(maintenance)
-	err := validateMaintenance(maintenance)
-	if err != nil {
-		return err
+	_, err := mu.maintenanceRepo.GetByID(maintenance.ID)
+	if err == nil {
+		return errMaintenanceExists
 	}
 
 	uuid, err := GenerateUUID()
@@ -76,6 +74,12 @@ func (mu *MaintenanceUsecaseImpl) Begin(ctx context.Context, maintenance *models
 
 	maintenance.ID = uuid
 	maintenance.End = sql.NullTime{}
+	cleanMaintenance(maintenance)
+	err = validateMaintenance(maintenance)
+	if err != nil {
+		return err
+	}
+
 	err = mu.maintenanceRepo.Store(maintenance)
 	if err != nil {
 		return err
@@ -138,10 +142,15 @@ func (mu *MaintenanceUsecaseImpl) Delete(ctx context.Context, ID string) error {
 }
 
 func cleanMaintenance(maintenance *models.Maintenance) {
-	strings.TrimSpace(maintenance.Description)
+	maintenance.ID = strings.TrimSpace(maintenance.ID)
+	maintenance.Description = strings.TrimSpace(maintenance.Description)
 }
 
 func validateMaintenance(maintenance *models.Maintenance) error {
+
+	if len(maintenance.ID) <= 0 {
+		return fmt.Errorf("validateMaintenance: ID must be non-empty")
+	}
 
 	if len(maintenance.Description) <= 0 {
 		return fmt.Errorf("validateMaintenance: description must be non-empty")

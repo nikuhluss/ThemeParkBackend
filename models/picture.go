@@ -16,7 +16,7 @@ const (
 
 // Picture represents a picture that holds the format and data as bytes.
 type Picture struct {
-	ID     string
-	Format PictureFormat
-	Data   []byte `db:"blob"`
+	ID     string        `json:"id"`
+	Format PictureFormat `json:"format"`
+	Data   []byte        `db:"blob" json:"data"`
 }

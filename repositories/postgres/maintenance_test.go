@@ -202,7 +202,7 @@ func TestGetAllMaintenanceTypesSucceeds(t *testing.T) {
 		t.FailNow()
 	}
 
-	assert.Equal(t, "Tune up", maintenanceTypes[0])
-	assert.Equal(t, "Fixed", maintenanceTypes[1])
-	assert.Equal(t, "Replacement", maintenanceTypes[2])
+	assert.Equal(t, "Fixed", maintenanceTypes[0])
+	assert.Equal(t, "Replacement", maintenanceTypes[1])
+	assert.Equal(t, "Tune up", maintenanceTypes[2])
 }
