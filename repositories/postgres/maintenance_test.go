@@ -97,12 +97,12 @@ func TestFetchMaintenanceSucceeds(t *testing.T) {
 	assert.Len(t, maintenance, 3)
 }
 
-func TestFetchByRideIDSucceeds(t *testing.T) {
+func TestFetchForRideSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
 	setupTestMaintenance(db)
-	maintenance, err := maintenanceRepository.FetchByRideID("maintenance--A--ride")
+	maintenance, err := maintenanceRepository.FetchForRide("maintenance--A--ride")
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}

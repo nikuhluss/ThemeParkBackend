@@ -57,8 +57,8 @@ func (rr *MaintenanceRepository) Fetch() ([]*models.Maintenance, error) {
 	return maintenance, err
 }
 
-// FetchByRideID is similar to Fetch, but fetches for the given ride rather than all entries.
-func (rr *MaintenanceRepository) FetchByRideID(rideID string) ([]*models.Maintenance, error) {
+// FetchForRide is similar to Fetch, but fetches for the given ride rather than all entries.
+func (rr *MaintenanceRepository) FetchForRide(rideID string) ([]*models.Maintenance, error) {
 	db := rr.db
 	udb := db.Unsafe()
 
@@ -158,7 +158,7 @@ func (rr *MaintenanceRepository) Delete(ID string) error {
 	return nil
 }
 
-func (rr *MaintenanceRepository) AvailableMaintenanceTypes() ([]string, error){
+func (rr *MaintenanceRepository) AvailableMaintenanceTypes() ([]string, error) {
 	db := rr.db
 	udb := db.Unsafe()
 

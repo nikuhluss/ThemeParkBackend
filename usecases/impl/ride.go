@@ -21,8 +21,8 @@ var (
 // RideUsecaseImpl implements the RideUsecase interface.
 type RideUsecaseImpl struct {
 	rideRepo    repositories.RideRepository
-	reviewRepo  repositories.ReviewRepository
 	pictureRepo repositories.PictureRepository
+	reviewRepo  repositories.ReviewRepository
 	timeout     time.Duration
 }
 
@@ -30,14 +30,14 @@ type RideUsecaseImpl struct {
 // parameter specifies a duration for each request before throwing and error.
 func NewRideUsecaseImpl(
 	rideRepo repositories.RideRepository,
-	reviewRepo repositories.ReviewRepository,
 	pictureRepo repositories.PictureRepository,
+	reviewRepo repositories.ReviewRepository,
 	timeout time.Duration) *RideUsecaseImpl {
 
 	return &RideUsecaseImpl{
 		rideRepo,
-		reviewRepo,
 		pictureRepo,
+		reviewRepo,
 		timeout,
 	}
 }

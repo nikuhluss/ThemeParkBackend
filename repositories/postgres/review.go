@@ -55,6 +55,16 @@ func (rr *ReviewRepository) Fetch() ([]*models.Review, error) {
 	return reviews, err
 }
 
+// FetchForRideSortedByRating fetches all reviews from the database for the given ride.
+func (rr *ReviewRepository) FetchForRideSortedByRating(rideID string) ([]*models.Review, error) {
+	return nil, fmt.Errorf("FetchForRideSortedByRating not implemented")
+}
+
+// FetchForRideSortedByDate fetches all reviews from the database for the given ride.
+func (rr *ReviewRepository) FetchForRideSortedByDate(rideID string) ([]*models.Review, error) {
+	return nil, fmt.Errorf("FetchForRideSortedByDate not implemented")
+}
+
 // Store creates an entry for the given review model in the database
 func (rr *ReviewRepository) Store(review *models.Review) error {
 	db := rr.db

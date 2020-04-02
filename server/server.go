@@ -3,8 +3,13 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
+
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
+	repos "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/repositories/postgres"
+	usecases "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/usecases/impl"
 )
 
 // Indent is the indentation used in pretty JSON responses.
@@ -28,70 +33,24 @@ func Start(address string) error {
 
 	e := echo.New()
 
-	// auth routes
+	dbconfig := testutil.NewDatabaseConnectionConfig()
+	db, err := testutil.NewDatabaseConnection(dbconfig)
+	if err != nil {
+		return err
+	}
 
-	e.POST(
-		"/login", notImplemented)
+	userRepository := repos.NewUserRepository(db)
+	rideRepository := repos.NewRideRepository(db)
+	pictureRepository := repos.NewPictureRepository(db)
+	reviewRepository := repos.NewReviewRepository(db)
+	maintenanceRepository := repos.NewMaintenanceRepository(db)
 
-	// ride routes
+	timeout := time.Second * 2
 
-	e.GET(
-		"/rides", notImplemented)
+	rideUsecase := usecases.NewRideUsecaseImpl(rideRepository, pictureRepository, reviewRepository, timeout)
+	maintenanceUsecase := usecases.NewMaintenanceUsecaseImpl(maintenanceRepository, timeout)
 
-	e.POST(
-		"/rides", notImplemented)
-
-	e.GET(
-		"/rides/:rideID", notImplemented)
-
-	e.PATCH(
-		"/rides/:rideID", notImplemented)
-
-	e.DELETE(
-		"/rides/:rideID", notImplemented)
-
-	e.GET(
-		"/rides/:rideID/maintenance", notImplemented)
-
-	// maintenance routes
-
-	e.GET(
-		"/maintenance", notImplemented)
-
-	e.POST(
-		"/maintenance", notImplemented)
-
-	e.GET(
-		"/maintenance/:maintenanceID", notImplemented)
-
-	e.PATCH(
-		"/maintenance/:maintenanceID", notImplemented)
-
-	e.POST(
-		"/maintenance/:maintenanceID/close", notImplemented)
-
-	e.DELETE(
-		"/maintenance/:maintenanceID", notImplemented)
-
-	// ticket routes
-
-	e.GET(
-		"/tickets", notImplemented)
-
-	e.POST(
-		"/tickets", notImplemented)
-
-	e.GET(
-		"/tickets/:ticketID", notImplemented)
-
-	e.PATCH(
-		"/tickets/:ticketID", notImplemented)
-
-	e.POST(
-		"/tickets/:ticketID/scan/:rideID", notImplemented)
-
-	e.DELETE(
-		"/tickets/:ticketID", notImplemented)
+	fmt.Println(userRepository, rideUsecase, maintenanceUsecase)
 
 	return e.Start(address)
 }
