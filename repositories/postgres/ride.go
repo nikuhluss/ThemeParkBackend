@@ -82,10 +82,12 @@ func (rr *RideRepository) Update(ride *models.Ride) error {
 		Set("description", "?").
 		Set("min_age", "?").
 		Set("min_height", "?").
+		Set("longitude", "?").
+		Set("latitude", "?").
 		Where("id = ?").
 		ToSql()
 
-	_, err := db.Exec(updateRide, ride.Name, ride.Description, ride.MinAge, ride.MinHeight, ride.ID)
+	_, err := db.Exec(updateRide, ride.Name, ride.Description, ride.MinAge, ride.MinHeight, ride.Longitude, ride.Latitude, ride.ID)
 	if err != nil {
 		return fmt.Errorf("updateRide: %s", err)
 	}

@@ -1,6 +1,7 @@
 package postgres_test
 
 import (
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/generator"
 	//"database/sql"
 
 	"testing"
@@ -17,18 +18,21 @@ import (
 // Fixtures
 // --------------------------------
 
-func setupTestRides(db *sqlx.DB) {
-	db.MustExec("TRUNCATE TABLE rides CASCADE")
+func setupTestRides(db *sqlx.DB) []string {
 
-	rideInsertQuery := `
-	INSERT INTO rides (ID, picture_collection_id, name, description, min_age, min_height, longitude, latitude)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	`
+	rideIDs := make([]string, 0, 3)
 
-	db.MustExec(rideInsertQuery, "ride--A", "ride--A--picId", "ride--A--name", "ride--A--description", 1, 1, 1, 1)
-	db.MustExec(rideInsertQuery, "ride--B", "ride--B--picId", "ride--B--name", "ride--B--description", 2, 2, 2, 2)
-	db.MustExec(rideInsertQuery, "ride--C", "ride--C--picId", "ride--C--name", "ride--C--description", 3, 3, 3, 3)
+	tx := db.MustBegin()
+	tx.MustExec("TRUNCATE TABLE rides CASCADE")
+	rideIDs = append(rideIDs, generator.MustInsertRide(tx))
+	rideIDs = append(rideIDs, generator.MustInsertRide(tx))
+	rideIDs = append(rideIDs, generator.MustInsertRide(tx))
+	err := tx.Commit()
+	if err != nil {
+		panic(err)
+	}
 
+	return rideIDs
 }
 
 // Tests
@@ -38,28 +42,21 @@ func TestGetRidesByIDSucceeds(t *testing.T) {
 	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
-	setupTestRides(db)
-	tests := []struct {
-		rideID string
-	}{
-		{"ride--A"},
-		{"ride--B"},
-		{"ride--C"},
-	}
+	tests := setupTestRides(db)
 
-	for idx, tt := range tests {
-		ride, err := rideRepository.GetByID(tt.rideID)
+	for _, rideID := range tests {
+		ride, err := rideRepository.GetByID(rideID)
 		if !assert.Nil(t, err) {
 			t.FailNow()
 		}
 
-		assert.Equal(t, tt.rideID, ride.ID)
-		assert.Equal(t, tt.rideID+"--name", ride.Name)
-		assert.Equal(t, tt.rideID+"--description", ride.Description)
-		assert.Equal(t, idx+1, ride.MinAge)
-		assert.Equal(t, idx+1, ride.MinHeight)
-		assert.Equal(t, float64(idx+1), ride.Longitude)
-		assert.Equal(t, float64(idx+1), ride.Latitude)
+		assert.Equal(t, rideID, ride.ID)
+		assert.Equal(t, rideID+" -- name", ride.Name)
+		assert.Equal(t, rideID+" -- description", ride.Description)
+		assert.Equal(t, 1, ride.MinAge)
+		assert.Equal(t, 2, ride.MinHeight)
+		assert.Equal(t, float64(3.0), ride.Longitude)
+		assert.Equal(t, float64(4.0), ride.Latitude)
 	}
 }
 
@@ -90,22 +87,25 @@ func TestStoreRideSucceeds(t *testing.T) {
 	rideRepository, _, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
-	ride := models.NewRide("ride--D", "ride--D--name", "ride--D--description", 4, 4, 4, 4)
-	err := rideRepository.Store(ride)
+	expectedRide := models.NewRide("ride--ID", "ride--ID--name", "ride--ID--description", 1, 2, 3, 4)
+	err := rideRepository.Store(expectedRide)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	ride, err = rideRepository.GetByID(ride.ID)
+	ride, err := rideRepository.GetByID(expectedRide.ID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
 	assert.NotNil(t, ride)
-	assert.Equal(t, "ride--D", ride.ID)
-
-	assert.Equal(t, "ride--D--name", ride.Name)
-	assert.Equal(t, "ride--D--description", ride.Description)
+	assert.Equal(t, expectedRide.ID, ride.ID)
+	assert.Equal(t, expectedRide.Name, ride.Name)
+	assert.Equal(t, expectedRide.Description, ride.Description)
+	assert.Equal(t, expectedRide.MinAge, ride.MinAge)
+	assert.Equal(t, expectedRide.MinHeight, ride.MinHeight)
+	assert.Equal(t, expectedRide.Longitude, ride.Longitude)
+	assert.Equal(t, expectedRide.Latitude, ride.Latitude)
 
 }
 
@@ -113,21 +113,21 @@ func TestUpdateRideSucceeds(t *testing.T) {
 	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
-	setupTestRides(db)
+	tests := setupTestRides(db)
+	rideID := tests[0]
 
-	ride, err := rideRepository.GetByID("ride--A")
+	ride, err := rideRepository.GetByID(rideID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	expectedRide := models.NewRide(ride.ID, "ride--D--name", "ride--D--description", 4, 4, 4, 4)
-
+	expectedRide := models.NewRide(ride.ID, "new name", "new description", 4, 4, 4, 4)
 	err = rideRepository.Update(expectedRide)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	updatedRide, err := rideRepository.GetByID("ride--A")
+	updatedRide, err := rideRepository.GetByID(rideID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
@@ -137,21 +137,23 @@ func TestUpdateRideSucceeds(t *testing.T) {
 	assert.Equal(t, expectedRide.Description, updatedRide.Description)
 	assert.Equal(t, expectedRide.MinAge, updatedRide.MinAge)
 	assert.Equal(t, expectedRide.MinHeight, updatedRide.MinHeight)
-
+	assert.Equal(t, expectedRide.Longitude, updatedRide.Longitude)
+	assert.Equal(t, expectedRide.Latitude, updatedRide.Latitude)
 }
 
 func TestDeleteRideSucceeds(t *testing.T) {
 	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
-	setupTestRides(db)
+	tests := setupTestRides(db)
+	rideID := tests[0]
 
-	err := rideRepository.Delete("ride--C")
+	err := rideRepository.Delete(rideID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	ride, err := rideRepository.GetByID("ride--C")
+	ride, err := rideRepository.GetByID(rideID)
 	assert.Nil(t, ride)
 	assert.NotNil(t, err)
 }

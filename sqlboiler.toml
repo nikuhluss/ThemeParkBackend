@@ -1,0 +1,11 @@
+pkgname = "orm"
+output = "orm"
+
+[psql]
+  dbname = "testdb"
+  host = "localhost"
+  port = 5432
+  user = "postgres"
+  schema = "theme_park"
+  sslmode = "disable"
+

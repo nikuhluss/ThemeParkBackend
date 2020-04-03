@@ -144,7 +144,7 @@ CREATE TABLE transactions (
 CREATE TABLE rides (
     id varchar(64) NOT NULL,
     picture_collection_id varchar(64),
-    name varchar(32) NOT NULL,
+    name varchar(64) NOT NULL,
     description varchar(128),
     min_age integer,
     min_height integer,
