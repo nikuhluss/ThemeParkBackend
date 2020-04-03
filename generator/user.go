@@ -9,8 +9,10 @@ import (
 )
 
 var (
-	year1970 = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-	year2000 = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	year1970        = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+	year2000        = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	password        = "password"
+	passwordHash, _ = crypto.HashFromPassword(password)
 )
 
 // InsertGender inserts the given gender and returns the generated ID.
@@ -50,14 +52,9 @@ func InsertRole(execer Execer, role string) (string, error) {
 
 // InsertCustomer inserts a new customer with the given email and username.
 // Password is always "password".
-func InsertCustomer(execer Execer, email, username string) (string, error) {
+func InsertCustomer(execer Execer, username, email string) (string, error) {
 
 	ID := gofakeit.UUID()
-	password := "password"
-	passwordHash, err := crypto.HashFromPassword(password)
-	if err != nil {
-		return "", err
-	}
 	registeredOn := gofakeit.DateRange(year2000, year2000.Add(time.Hour*24*365*10))
 
 	userInsertQuery := `
@@ -70,7 +67,7 @@ func InsertCustomer(execer Execer, email, username string) (string, error) {
 	VALUES ($1)
 	`
 
-	_, err = execer.Exec(userInsertQuery, ID, username, email, "", passwordHash, registeredOn)
+	_, err := execer.Exec(userInsertQuery, ID, username, email, "", passwordHash, registeredOn)
 	if err != nil {
 		return "", err
 	}
@@ -85,14 +82,9 @@ func InsertCustomer(execer Execer, email, username string) (string, error) {
 
 // InsertEmployee inserts a new employee with the given email, username, and role.
 // Password is always "password".
-func InsertEmployee(execer Execer, email, username, roleID string) (string, error) {
+func InsertEmployee(execer Execer, username, email, roleID string) (string, error) {
 
 	ID := gofakeit.UUID()
-	password := "password"
-	passwordHash, err := crypto.HashFromPassword(password)
-	if err != nil {
-		return "", err
-	}
 	registeredOn := gofakeit.DateRange(year2000, year2000.Add(time.Hour*24*365*10))
 
 	userInsertQuery := `
@@ -105,7 +97,7 @@ func InsertEmployee(execer Execer, email, username, roleID string) (string, erro
 	VALUES ($1, $2, $3)
 	`
 
-	_, err = execer.Exec(userInsertQuery, ID, username, email, "", passwordHash, registeredOn)
+	_, err := execer.Exec(userInsertQuery, ID, username, email, "", passwordHash, registeredOn)
 	if err != nil {
 		return "", err
 	}

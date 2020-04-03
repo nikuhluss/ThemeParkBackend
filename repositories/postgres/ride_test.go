@@ -38,7 +38,7 @@ func setupTestRides(db *sqlx.DB) []string {
 // Tests
 // --------------------------------
 
-func TestGetRidesByIDSucceeds(t *testing.T) {
+func TestRideGetByIDSucceeds(t *testing.T) {
 	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
@@ -60,7 +60,7 @@ func TestGetRidesByIDSucceeds(t *testing.T) {
 	}
 }
 
-func TestGetByRideIDNoMatchFails(t *testing.T) {
+func TestRideGetByIDNoMatchFails(t *testing.T) {
 	rideRepository, _, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
@@ -83,7 +83,7 @@ func TestRideFetchSucceeds(t *testing.T) {
 	assert.Len(t, rides, 3)
 }
 
-func TestStoreRideSucceeds(t *testing.T) {
+func TestRideStoreSucceeds(t *testing.T) {
 	rideRepository, _, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
@@ -109,7 +109,7 @@ func TestStoreRideSucceeds(t *testing.T) {
 
 }
 
-func TestUpdateRideSucceeds(t *testing.T) {
+func TestRideUpdateSucceeds(t *testing.T) {
 	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 
@@ -141,7 +141,7 @@ func TestUpdateRideSucceeds(t *testing.T) {
 	assert.Equal(t, expectedRide.Latitude, updatedRide.Latitude)
 }
 
-func TestDeleteRideSucceeds(t *testing.T) {
+func TestRideDeleteSucceeds(t *testing.T) {
 	rideRepository, db, teardown := testutil.MakeRideRepositoryFixture()
 	defer teardown()
 

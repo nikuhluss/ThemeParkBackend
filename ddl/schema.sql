@@ -25,7 +25,7 @@ CREATE TABLE users (
     username varchar(32) NOT NULL,
     email varchar(64) NOT NULL,
     password_salt varchar(32) NOT NULL,
-    password_hash varchar(32) NOT NULL,
+    password_hash varchar(64) NOT NULL,
     registered_on timestamp NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username),
