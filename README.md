@@ -13,6 +13,10 @@ links for **reference** only, as we don't follow them exactly:
 
 ### Folder structure
 
+- `/handlers`: Contains the HTTP handlers for echo.
+
+- `/generator`: Containst the script and functions for generator mock data.
+
 - `/internal`: Contains code that we use internally (not part of the public API).
 
 - `/models`: Contains the base entities/structures that serve as the building
