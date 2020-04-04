@@ -178,8 +178,8 @@ CREATE TABLE tickets (
     id varchar(64) NOT NULL,
     user_id varchar(64) NOT NULL,
     is_kid boolean DEFAULT TRUE NOT NULL,
-    puchase_price numeric(10, 2) NOT NULL,
-    puchased_on timestamp NOT NULL,
+    purchase_price numeric(10, 2) NOT NULL,
+    purchased_on timestamp NOT NULL,
     purchase_reference varchar(64) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES customers (user_id)
