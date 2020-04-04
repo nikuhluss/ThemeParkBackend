@@ -327,7 +327,7 @@ func (ur *UserRepository) Delete(ID string) error {
 
 	deleteCustomer, _, _ := psql.
 		Delete("customers").
-		Where("user_id").
+		Where("user_id = ?").
 		ToSql()
 
 	user, err := ur.GetByID(ID)
@@ -408,7 +408,7 @@ func (ur *UserRepository) AvailableGenders() ([]string, error) {
 	db := ur.db
 	udb := db.Unsafe()
 
-	query, _ := psql.Select("DISTINCT gender").From("genders").MustSql()
+	query, _ := psql.Select("DISTINCT gender").From("genders").OrderBy("gender ASC").MustSql()
 
 	rows := []string{}
 	err := udb.Select(&rows, query)

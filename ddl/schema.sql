@@ -25,7 +25,7 @@ CREATE TABLE users (
     username varchar(32) NOT NULL,
     email varchar(64) NOT NULL,
     password_salt varchar(32) NOT NULL,
-    password_hash varchar(32) NOT NULL,
+    password_hash varchar(64) NOT NULL,
     registered_on timestamp NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username),
@@ -144,7 +144,7 @@ CREATE TABLE transactions (
 CREATE TABLE rides (
     id varchar(64) NOT NULL,
     picture_collection_id varchar(64),
-    name varchar(32) NOT NULL,
+    name varchar(64) NOT NULL,
     description varchar(128),
     min_age integer,
     min_height integer,

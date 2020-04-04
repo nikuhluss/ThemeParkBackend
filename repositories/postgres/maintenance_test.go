@@ -2,8 +2,9 @@ package postgres_test
 
 import (
 	"database/sql"
-	"fmt"
 	"testing"
+
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/generator"
 
 	"time"
 
@@ -16,75 +17,57 @@ import (
 // Fixtures
 // --------------------------------
 
-func setupTestMaintenance(db *sqlx.DB) {
+func setupTestMaintenance(db *sqlx.DB) ([]string, []string) {
 
-	rideInsertQuery := `
-	INSERT INTO rides (ID, picture_collection_id, name, description, min_age, min_height, longitude, latitude)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	`
+	tx := db.MustBegin()
 
-	db.MustExec("TRUNCATE TABLE rides CASCADE")
-	db.MustExec(rideInsertQuery, "maintenance--A--ride-id", "ride--A--picId", "maintenance--A--ride-name", "ride--A--description", 1, 1, 1, 1)
-	db.MustExec(rideInsertQuery, "maintenance--B--ride-id", "ride--B--picId", "maintenance--B--ride-name", "ride--B--description", 2, 2, 2, 2)
-	db.MustExec(rideInsertQuery, "maintenance--C--ride-id", "ride--C--picId", "maintenance--C--ride-name", "ride--C--description", 3, 3, 3, 3)
+	tx.MustExec("TRUNCATE TABLE rides CASCADE")
+	tx.MustExec("TRUNCATE TABLE maintenance_types CASCADE")
+	tx.MustExec("TRUNCATE TABLE rides_maintenance CASCADE")
 
-	MtypeInsertQuery := `
-	INSERT INTO maintenance_types (ID, maintenance_type)
-	VALUES ($1, $2)
-	`
+	ride0 := generator.MustInsertRide(tx)
+	ride1 := generator.MustInsertRide(tx)
 
-	db.MustExec("TRUNCATE TABLE maintenance_types CASCADE")
-	db.MustExec(MtypeInsertQuery, "type--A", "Tune up")
-	db.MustExec(MtypeInsertQuery, "type--B", "Replacement")
-	db.MustExec(MtypeInsertQuery, "type--C", "Fixed")
+	maintenanceTypeTuneUp := generator.MustInsertMaintenanceType(tx, "Tune Up")
+	maintenanceTypeReplacement := generator.MustInsertMaintenanceType(tx, "Replacement")
+	maintenanceTypeFixed := generator.MustInsertMaintenanceType(tx, "Fixed")
 
-	MaintenanceInsertQuery := `
-	INSERT INTO rides_maintenance (ID, ride_id, maintenance_type_id, description, cost, start_datetime, end_datetime)
-	VALUES ($1, $2, $3, $4, $5, $6, $7)
-	`
+	maintenance0 := generator.MustInsertMaintenance(tx, ride0, maintenanceTypeTuneUp)
+	maintenance1 := generator.MustInsertMaintenance(tx, ride1, maintenanceTypeReplacement)
+	maintenance2 := generator.MustInsertMaintenance(tx, ride1, maintenanceTypeFixed)
 
-	db.MustExec("TRUNCATE TABLE rides_maintenance CASCADE")
-	db.MustExec(MaintenanceInsertQuery, "maintenance--A", "maintenance--A--ride-id", "type--A", "maintenance--A--description", 1, time.Now(), time.Now())
-	db.MustExec(MaintenanceInsertQuery, "maintenance--B", "maintenance--B--ride-id", "type--B", "maintenance--B--description", 2, time.Now(), time.Now())
-	db.MustExec(MaintenanceInsertQuery, "maintenance--C", "maintenance--C--ride-id", "type--C", "maintenance--C--description", 3, time.Now(), time.Now())
+	err := tx.Commit()
+	if err != nil {
+		panic(err)
+	}
 
+	return []string{ride0, ride1}, []string{maintenance0, maintenance1, maintenance2}
 }
 
 // Tests
 // --------------------------------
-func TestGetMaintenanceByIDSucceeds(t *testing.T) {
+func TestMaintenanceGetByIDSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
-	setupTestMaintenance(db)
+	_, maintenanceIDs := setupTestMaintenance(db)
 
-	tests := []struct {
-		maintenanceID           string
-		expectedMaintenanceType string
-	}{
-		{"maintenance--A", "Tune up"},
-		{"maintenance--B", "Replacement"},
-		{"maintenance--C", "Fixed"},
-	}
-
-	for idx, tt := range tests {
-		maintenance, err := maintenanceRepository.GetByID(tt.maintenanceID)
+	for _, maintenanceID := range maintenanceIDs {
+		maintenance, err := maintenanceRepository.GetByID(maintenanceID)
 		if !assert.Nil(t, err) {
 			t.FailNow()
 		}
 
-		fmt.Println(">", maintenance)
-
-		assert.Equal(t, tt.maintenanceID, maintenance.ID)
-		assert.Equal(t, tt.maintenanceID+"--ride-id", maintenance.RideID)
-		assert.Equal(t, tt.maintenanceID+"--ride-name", maintenance.RideName)
-		assert.Equal(t, tt.expectedMaintenanceType, maintenance.MaintenanceType)
-		assert.Equal(t, tt.maintenanceID+"--description", maintenance.Description)
-		assert.Equal(t, int(idx+1), int(maintenance.Cost))
+		assert.Equal(t, maintenanceID, maintenance.ID)
+		assert.NotEmpty(t, maintenance.RideID)
+		assert.NotEmpty(t, maintenance.RideName)
+		assert.NotEmpty(t, maintenance.MaintenanceType)
+		assert.NotEmpty(t, maintenance.Description)
+		assert.Equal(t, float64(1000), maintenance.Cost)
 	}
 }
 
-func TestFetchMaintenanceSucceeds(t *testing.T) {
+func TestMaintenanceFetchSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
@@ -98,12 +81,14 @@ func TestFetchMaintenanceSucceeds(t *testing.T) {
 	assert.Len(t, maintenance, 3)
 }
 
-func TestFetchForRideSucceeds(t *testing.T) {
+func TestMaintenanceFetchForRideSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
-	setupTestMaintenance(db)
-	maintenance, err := maintenanceRepository.FetchForRide("maintenance--A--ride-id")
+	rideIDs, _ := setupTestMaintenance(db)
+	rideID := rideIDs[0]
+
+	maintenance, err := maintenanceRepository.FetchForRide(rideID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
@@ -111,17 +96,18 @@ func TestFetchForRideSucceeds(t *testing.T) {
 	assert.Len(t, maintenance, 1)
 }
 
-func TestStoreMaintenanceSucceeds(t *testing.T) {
+func TestMaintenanceStoreSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
-	setupTestMaintenance(db)
+	rideIDs, _ := setupTestMaintenance(db)
+	rideID := rideIDs[0]
 
 	users := []*models.User{
 		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
 	}
 
-	maintenance := models.NewMaintenance("maintenance--D", "maintenance--A--ride-id", "maintenance--A--ride-name", "Tune up", "maintenance--D--description", 60, time.Now(), users)
+	maintenance := models.NewMaintenance("maintenance--ID", rideID, "Ride name", "Tune Up", "description", 60, time.Now(), users)
 	err := maintenanceRepository.Store(maintenance)
 	if !assert.Nil(t, err) {
 		t.FailNow()
@@ -132,17 +118,21 @@ func TestStoreMaintenanceSucceeds(t *testing.T) {
 		t.FailNow()
 	}
 
-	assert.NotNil(t, maintenanceOut)
-
+	assert.Equal(t, maintenance.ID, maintenanceOut.ID)
+	assert.Equal(t, maintenance.RideID, maintenanceOut.RideID)
+	assert.Equal(t, maintenance.MaintenanceType, maintenanceOut.MaintenanceType)
+	assert.Equal(t, maintenance.Description, maintenance.Description)
 }
 
-func TestUpdateMaintenanceSucceeds(t *testing.T) {
+func TestMaintenanceUpdateSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
-	setupTestMaintenance(db)
+	rideIDs, maintenanceIDs := setupTestMaintenance(db)
+	rideID := rideIDs[len(rideIDs)-1]
+	maintenanceID := maintenanceIDs[0]
 
-	maintenance, err := maintenanceRepository.GetByID("maintenance--A")
+	maintenance, err := maintenanceRepository.GetByID(maintenanceID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
@@ -151,17 +141,15 @@ func TestUpdateMaintenanceSucceeds(t *testing.T) {
 		models.NewEmployee("user--D", "user--D--email", "user--D--passS", "user--D--passH", "Ride Manager", 22),
 	}
 
-	expectedMaintenance := models.NewMaintenance(maintenance.ID, "maintenance--B--ride-id", "maintenance--B--ride-name", "Replacement", "maintenance--A--new Description", 70, time.Now(), users)
-	var p sql.NullTime
-	p.Time = time.Now()
-	expectedMaintenance.End = p
+	expectedMaintenance := models.NewMaintenance(maintenance.ID, rideID, "new name", "Replacement", "new description", 70, maintenance.Start, users)
+	expectedMaintenance.End = sql.NullTime{Time: time.Now(), Valid: true}
 
 	err = maintenanceRepository.Update(expectedMaintenance)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	updatedMaintenance, err := maintenanceRepository.GetByID("maintenance--A")
+	updatedMaintenance, err := maintenanceRepository.GetByID(maintenanceID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
@@ -174,23 +162,24 @@ func TestUpdateMaintenanceSucceeds(t *testing.T) {
 
 }
 
-func TestDeleteMaintenanceSucceeds(t *testing.T) {
+func TestMaintenanceDeleteSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
-	setupTestMaintenance(db)
+	_, maintenanceIDs := setupTestMaintenance(db)
+	maintenanceID := maintenanceIDs[0]
 
-	err := maintenanceRepository.Delete("maintenance--C")
+	err := maintenanceRepository.Delete(maintenanceID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	maintenance, err := maintenanceRepository.GetByID("maintenance--C")
+	maintenance, err := maintenanceRepository.GetByID(maintenanceID)
 	assert.Nil(t, maintenance)
 	assert.NotNil(t, err)
 }
 
-func TestGetAllMaintenanceTypesSucceeds(t *testing.T) {
+func TestMaintenanceGetAllMaintenanceTypesSucceeds(t *testing.T) {
 	maintenanceRepository, db, teardown := testutil.MakeMaintenanceRepositoryFixture()
 	defer teardown()
 
@@ -204,5 +193,5 @@ func TestGetAllMaintenanceTypesSucceeds(t *testing.T) {
 
 	assert.Equal(t, "Fixed", maintenanceTypes[0])
 	assert.Equal(t, "Replacement", maintenanceTypes[1])
-	assert.Equal(t, "Tune up", maintenanceTypes[2])
+	assert.Equal(t, "Tune Up", maintenanceTypes[2])
 }

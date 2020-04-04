@@ -80,3 +80,16 @@ On the root folder of this project:
 ```sh
 go test ./...
 ```
+
+#### Populating database
+
+```sh
+go run main.go generate
+```
+
+#### Running HTTP server
+
+```sh
+go run main.go server
+```
+
