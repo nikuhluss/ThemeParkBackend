@@ -26,9 +26,9 @@ func (mh *MaintenanceHandler) Bind(e *echo.Echo) error {
 	e.GET("/maintenance", mh.Fetch)
 	e.GET("/maintenance/:rideID", mh.FetchForRide)
 	e.POST("/maintenance/begin", mh.Store)
-	//e.PUT("/rides/:rideID", rh.Update)
-	//e.DELETE("/rides/:rideID", rh.Delete)
-	//e.GET("/rides/:rideID/maintenance", rh.FetchMaintenance)
+	e.PUT("/maintenance/:maintenanceID", mh.Update)
+	e.POST("/maintenance/:maintenanceID/close", mh.Close)
+	e.DELETE("/maintenance/:maintenanceID", mh.Delete)
 	return nil
 }
 
@@ -71,7 +71,7 @@ func (mh *MaintenanceHandler) FetchForRide(c echo.Context) error {
 }
 
 // Store creates a new maintenance.
-func (rh *MaintenanceHandler) Store(c echo.Context) error {
+func (mh *MaintenanceHandler) Store(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	maintenance := &models.Maintenance{}
@@ -81,10 +81,66 @@ func (rh *MaintenanceHandler) Store(c echo.Context) error {
 		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
 	}
 
-	err = rh.maintenanceUsecase.Begin(ctx, maintenance)
+	err = mh.maintenanceUsecase.Begin(ctx, maintenance)
 	if err != nil {
 		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
 	}
 
 	return c.JSONPretty(http.StatusCreated, maintenance, Indent)
+}
+
+// Update updates a specific maintenance.
+func (mh *MaintenanceHandler) Update(c echo.Context) error {
+	ctx := c.Request().Context()
+	maintenanceID := c.Param("maintenanceID")
+
+	maintenance := &models.Maintenance{}
+	maintenance.ID = maintenanceID
+
+	err := c.Bind(maintenance)
+	if err != nil {
+		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
+	}
+
+	err = mh.maintenanceUsecase.Update(ctx, maintenance)
+	if err != nil {
+		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
+	}
+
+	return c.JSONPretty(http.StatusOK, maintenance, Indent)
+}
+
+// Close closes a specific maintenance.
+func (mh *MaintenanceHandler) Close(c echo.Context) error {
+	ctx := c.Request().Context()
+	maintenanceID := c.Param("maintenanceID")
+
+	maintenance := &models.Maintenance{}
+	maintenance.ID = maintenanceID
+	maintenance.MaintenanceType = "closed"
+
+	err := c.Bind(maintenance)
+	if err != nil {
+		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
+	}
+
+	maintenance, err = mh.maintenanceUsecase.Close(ctx, maintenance.ID)
+	if err != nil {
+		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
+	}
+
+	return c.JSONPretty(http.StatusCreated, maintenance, Indent)
+}
+
+// Delete deletes a specific maintenance.
+func (mh *MaintenanceHandler) Delete(c echo.Context) error {
+	ctx := c.Request().Context()
+	maintenanceID := c.Param("maintenanceID")
+
+	err := mh.maintenanceUsecase.Delete(ctx, maintenanceID)
+	if err != nil {
+		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
+	}
+
+	return c.JSONPretty(http.StatusOK, "", Indent)
 }
