@@ -11,7 +11,7 @@ import (
 
 // MaintenanceHandler handles HTTP requests for maintenance jobs.
 type MaintenanceHandler struct {
-	maintenanceUsecase           usecases.MaintenanceUsecase
+	maintenanceUsecase usecases.MaintenanceUsecase
 }
 
 func NewMaintenanceHandler(maintenanceUsecase usecases.MaintenanceUsecase) *MaintenanceHandler {
@@ -24,7 +24,6 @@ func NewMaintenanceHandler(maintenanceUsecase usecases.MaintenanceUsecase) *Main
 func (mh *MaintenanceHandler) Bind(e *echo.Echo) error {
 	e.GET("/maintenance/:maintenanceID", mh.GetByID)
 	e.GET("/maintenance", mh.Fetch)
-	e.GET("/maintenance/:rideID", mh.FetchForRide)
 	e.POST("/maintenance/begin", mh.Store)
 	e.PUT("/maintenance/:maintenanceID", mh.Update)
 	e.POST("/maintenance/:maintenanceID/close", mh.Close)
@@ -55,19 +54,6 @@ func (mh *MaintenanceHandler) Fetch(c echo.Context) error {
 	}
 
 	return c.JSONPretty(http.StatusOK, maintenance, Indent)
-}
-
-// FetchForRide maintenance for a ride.
-func (mh *MaintenanceHandler) FetchForRide(c echo.Context) error {
-	ctx := c.Request().Context()
-	rideID := c.Param("maintenanceID")
-
-	maintenance, err := mh.maintenanceUsecase.FetchForRide(ctx, rideID)
-	if err != nil {
-		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
-	}
-
-	return c.JSONPretty(http.StatusFound, maintenance, Indent)
 }
 
 // Store creates a new maintenance.
