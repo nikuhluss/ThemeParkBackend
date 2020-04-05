@@ -3,9 +3,10 @@ package impl
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
-	"regexp"
+
 	//"golang.org/x/sync/errgroup"
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/mathutil"
@@ -20,8 +21,8 @@ var (
 
 // UserUsecaseImpl implements the UserUsecase interface.
 type UserUsecaseImpl struct {
-	userRepo    repos.UserRepository
-	timeout     time.Duration
+	userRepo repos.UserRepository
+	timeout  time.Duration
 }
 
 // NewUserUsecaseImpl returns a new UserUsecaseImpl instance. The timeout
@@ -54,7 +55,7 @@ func (uu *UserUsecaseImpl) Fetch(ctx context.Context) ([]*models.User, error) {
 		return nil, err
 	}
 
-	return allUser, err
+	return allUser, nil
 }
 
 // FetchCustomers fetches all Customers from the repositories.
@@ -64,7 +65,7 @@ func (uu *UserUsecaseImpl) FetchCustomers(ctx context.Context) ([]*models.User, 
 		return nil, err
 	}
 
-	return allCustomer, err
+	return allCustomer, nil
 }
 
 // FetchEmployees fetches all Employees from the repositories.
@@ -74,7 +75,7 @@ func (uu *UserUsecaseImpl) FetchEmployees(ctx context.Context) ([]*models.User, 
 		return nil, err
 	}
 
-	return allEmployee, err
+	return allEmployee, nil
 }
 
 // Store creates a new user in the repository if a user with the same ID
@@ -146,18 +147,16 @@ func cleanUser(user *models.User) {
 	user.Address.String = strings.TrimSpace(user.Address.String)
 }
 
-func cleanEmployee(employee *models.User){
+func cleanEmployee(employee *models.User) {
 	employee.Role.String = strings.TrimSpace(employee.Role.String)
 	employee.HourlyRate = mathutil.ClampFloat32(employee.HourlyRate, 0, 500)
 }
 
 func validateUser(user *models.User) error {
 	var validEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	var validName = regexp.MustCompile(`^[a-z]`)
+	var validName = regexp.MustCompile(`^[A-z]`)
 	var validPhone = regexp.MustCompile(`^[0-9]`)
 	var validPhone2 = regexp.MustCompile(`^[0-9]+\-+[0-9]+\-+[0-9]`)
-	
-
 
 	if len(user.ID) <= 0 {
 		return fmt.Errorf("validateUser: ID must be non-empty")
@@ -187,10 +186,6 @@ func validateUser(user *models.User) error {
 		return fmt.Errorf("validateUser: invalid email address format")
 	}
 
-	if !validPhone.MatchString(strings.ToLower(user.Phone.String)) && len(user.Phone.String) < 10 || !validPhone2.MatchString(strings.ToLower(user.Phone.String)) && len(user.Phone.String) < 13 {
-		return fmt.Errorf("validateUser: invalid phone number format")
-	}
-
 	if !validName.MatchString(strings.ToLower(user.FirstName.String)) {
 		return fmt.Errorf("validateUser: invalid first name format")
 	}
@@ -199,6 +194,9 @@ func validateUser(user *models.User) error {
 		return fmt.Errorf("validateUser: invalid last name format")
 	}
 
+	if !validPhone.MatchString(strings.ToLower(user.Phone.String)) && len(user.Phone.String) < 10 || !validPhone2.MatchString(strings.ToLower(user.Phone.String)) && len(user.Phone.String) < 13 {
+		return fmt.Errorf("validateUser: invalid phone number format")
+	}
+
 	return nil
 }
-
