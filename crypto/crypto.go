@@ -18,13 +18,12 @@ func HashFromPassword(password string) (string, error) {
 
 // CompareHashAndPassword compares the given hashed password and plain password
 // and returns true and no error if the are equivalent.
-func CompareHashAndPassword(hashedPassword, plainPassword string) (bool, error) {
+func CompareHashAndPassword(hashedPassword, plainPassword string) bool {
 	hashedPasswordBytes := []byte(hashedPassword)
 	plainPasswordBytes := []byte(plainPassword)
 	err := bcrypt.CompareHashAndPassword(hashedPasswordBytes, plainPasswordBytes)
 	if err != nil {
-		return false, err
+		return false
 	}
-
-	return true, nil
+	return true
 }

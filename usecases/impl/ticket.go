@@ -21,11 +21,12 @@ var (
 type TicketUsecaseImpl struct {
 	ticketRepo repos.TicketRepository
 	rideRepo   repos.RideRepository
+	userRepo   repos.UserRepository
 }
 
 // NewTicketUsecaseImpl returns a new TicketUsecaseImpl instance.
-func NewTicketUsecaseImpl(ticketRepo repos.TicketRepository, rideRepo repos.RideRepository) *TicketUsecaseImpl {
-	return &TicketUsecaseImpl{ticketRepo, rideRepo}
+func NewTicketUsecaseImpl(ticketRepo repos.TicketRepository, rideRepo repos.RideRepository, userRepo repos.UserRepository) *TicketUsecaseImpl {
+	return &TicketUsecaseImpl{ticketRepo, rideRepo, userRepo}
 }
 
 // GetByID fetches a ticket with the given ID from the repository.
@@ -44,6 +45,10 @@ func (tu *TicketUsecaseImpl) Fetch(ctx context.Context) ([]*models.Ticket, error
 
 // FetchForUser fetches all the tickets for the given user.
 func (tu *TicketUsecaseImpl) FetchForUser(ctx context.Context, userID string) ([]*models.Ticket, error) {
+	_, err := tu.userRepo.GetByID(userID)
+	if err != nil {
+		return nil, errUserDoesNotExists
+	}
 	return tu.ticketRepo.FetchForUser(userID)
 }
 
@@ -54,11 +59,19 @@ func (tu *TicketUsecaseImpl) FetchScans(ctx context.Context) ([]*models.TicketSc
 
 // FetchScansForUser fetches all scans for the given user.
 func (tu *TicketUsecaseImpl) FetchScansForUser(ctx context.Context, userID string) ([]*models.TicketScan, error) {
+	_, err := tu.userRepo.GetByID(userID)
+	if err != nil {
+		return nil, errUserDoesNotExists
+	}
 	return tu.ticketRepo.FetchScansForUser(userID)
 }
 
 // FetchScansForRide fetches all scans for the given ride.
 func (tu *TicketUsecaseImpl) FetchScansForRide(ctx context.Context, rideID string) ([]*models.TicketScan, error) {
+	_, err := tu.rideRepo.GetByID(rideID)
+	if err != nil {
+		return nil, errRideDoesNotExists
+	}
 	return tu.ticketRepo.FetchScansForRide(rideID)
 }
 
@@ -69,12 +82,18 @@ func (tu *TicketUsecaseImpl) Store(ctx context.Context, ticket *models.Ticket) e
 		return errTicketExists
 	}
 
+	_, err = tu.userRepo.GetByID(ticket.UserID)
+	if err != nil {
+		return errUserDoesNotExists
+	}
+
 	uuid, err := GenerateUUID()
 	if err != nil {
 		return err
 	}
 
 	ticket.ID = uuid
+	ticket.PurchasedOn = time.Now().UTC()
 	cleanTicket(ticket)
 	err = validateTicket(ticket)
 	if err != nil {
@@ -94,6 +113,11 @@ func (tu *TicketUsecaseImpl) Update(ctx context.Context, ticket *models.Ticket) 
 	_, err := tu.ticketRepo.GetByID(ticket.ID)
 	if err != nil {
 		return errTicketDoesNotExists
+	}
+
+	_, err = tu.userRepo.GetByID(ticket.UserID)
+	if err != nil {
+		return errUserDoesNotExists
 	}
 
 	cleanTicket(ticket)

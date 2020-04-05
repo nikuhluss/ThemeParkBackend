@@ -50,17 +50,19 @@ func Start(address string) error {
 
 	// repos
 
-	// userRepository := repos.NewUserRepository(db)
-	rideRepository := repos.NewRideRepository(db)
-	pictureRepository := repos.NewPictureRepository(db)
-	reviewRepository := repos.NewReviewRepository(db)
-	maintenanceRepository := repos.NewMaintenanceRepository(db)
+	userRepo := repos.NewUserRepository(db)
+	rideRepo := repos.NewRideRepository(db)
+	pictureRepo := repos.NewPictureRepository(db)
+	reviewRepo := repos.NewReviewRepository(db)
+	maintenanceRepo := repos.NewMaintenanceRepository(db)
+	ticketRepo := repos.NewTicketRepository(db)
 
 	// usecases
 
 	timeout := time.Second * 2
-	rideUsecase := usecases.NewRideUsecaseImpl(rideRepository, pictureRepository, reviewRepository, timeout)
-	maintenanceUsecase := usecases.NewMaintenanceUsecaseImpl(maintenanceRepository, timeout)
+	rideUsecase := usecases.NewRideUsecaseImpl(rideRepo, pictureRepo, reviewRepo, timeout)
+	maintenanceUsecase := usecases.NewMaintenanceUsecaseImpl(maintenanceRepo, timeout)
+	ticketUsecase := usecases.NewTicketUsecaseImpl(ticketRepo, rideRepo, userRepo)
 
 	// handlers
 
@@ -72,6 +74,12 @@ func Start(address string) error {
 
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceUsecase)
 	err = maintenanceHandler.Bind(e)
+	if err != nil {
+		return err
+	}
+
+	ticketHandler := handlers.NewTicketHandler(ticketUsecase)
+	err = ticketHandler.Bind(e)
 	if err != nil {
 		return err
 	}
