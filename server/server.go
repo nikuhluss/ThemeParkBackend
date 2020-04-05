@@ -11,6 +11,7 @@ import (
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/internal/testutil"
 
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/handlers"
+	middlew "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/middleware"
 	repos "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/repositories/postgres"
 	usecases "gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/usecases/impl"
 )
@@ -36,10 +37,6 @@ func Start(address string) error {
 
 	e := echo.New()
 
-	// middleware
-
-	e.Use(middleware.Logger())
-
 	// database
 
 	dbconfig := testutil.NewDatabaseConnectionConfig()
@@ -60,9 +57,18 @@ func Start(address string) error {
 	// usecases
 
 	timeout := time.Second * 2
+	userUsecase := usecases.NewUserUsecaseImpl(userRepo, timeout)
 	rideUsecase := usecases.NewRideUsecaseImpl(rideRepo, pictureRepo, reviewRepo, timeout)
 	maintenanceUsecase := usecases.NewMaintenanceUsecaseImpl(maintenanceRepo, timeout)
 	ticketUsecase := usecases.NewTicketUsecaseImpl(ticketRepo, rideRepo, userRepo)
+
+	// middleware
+
+	keyAuth := middlew.NewKeyAuth(userUsecase)
+
+	e.Use(middleware.KeyAuth(keyAuth.Validator))
+	e.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+	e.Use(middleware.Logger())
 
 	// handlers
 
