@@ -7,6 +7,30 @@ import (
 	"time"
 )
 
+const (
+	hoursInDay   = 24
+	hoursInWeek  = hoursInDay * 7
+	hoursInMonth = hoursInWeek * 4
+	hoursInYear  = hoursInMonth * 12
+	daysInWeek   = 7
+	daysInMonth  = daysInWeek * 4
+	daysInYear   = daysInMonth * 12
+	weeksInMonth = 4
+	weeksInYear  = weeksInMonth * 12
+	monthsInYear = 12
+
+	hourDuration  = time.Hour
+	dayDuration   = hourDuration * hoursInDay
+	weekDuration  = hourDuration * hoursInWeek
+	monthDuration = hourDuration * hoursInMonth
+	yearDuration  = hourDuration * hoursInYear
+)
+
+var (
+	defaultStartDate        = time.Date(2010, 1, 1, 12, 0, 0, 0, time.UTC)
+	defaultMonthsToGenerate = monthsInYear * 2
+)
+
 // Rand wraps the standard rand.Rand.
 type Rand struct {
 	*rand.Rand
@@ -107,7 +131,7 @@ func (i *Inserter) DoInsert() error {
 	fmt.Println("Inserting customers...")
 	i.execer.Exec("TRUNCATE TABLE users CASCADE")
 
-	totalCustomers := 1000
+	totalCustomers := 100
 	customers := make([]string, 0, totalCustomers)
 	for idx := 0; idx < totalCustomers; idx++ {
 		username := fmt.Sprintf("customer%d", idx)
@@ -134,7 +158,7 @@ func (i *Inserter) DoInsert() error {
 
 	fmt.Println("Inserting employees...")
 
-	totalEmployees := 100
+	totalEmployees := 15
 	employees := make([]string, 0, totalEmployees)
 	for idx := 0; idx < totalEmployees; idx++ {
 		username := fmt.Sprintf("employee%d", idx)
@@ -195,13 +219,64 @@ func (i *Inserter) DoInsert() error {
 
 	// Tickets
 
-	// fmt.Println("Inserting tickets...")
-	// i.execer.Exec("TRUNCATE TABLE rides_maintenance CASCADE")
-
-	for _, _ = range rides {
+	fmt.Println("Inserting tickets...")
+	i.execer.Exec("TRUNCATE TABLE tickets CASCADE")
+	i.execer.Exec("TRUNCATE TABLE tickets_on_rides CASCADE")
+	_, err = i.doInsertTickets(customers, rides)
+	if err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func (i *Inserter) doInsertTickets(customers []string, rides []string) ([]string, error) {
+
+	for _, customer := range customers {
+
+		// bulk insert for each customer
+
+		purchaseTimes := make([]time.Time, 0, daysInMonth*defaultMonthsToGenerate)
+
+		for day := 0; day < daysInMonth*defaultMonthsToGenerate; day++ {
+			buysTicketToday := i.rand.Float32() <= 0.50
+			if !buysTicketToday {
+				continue
+			}
+			ptime := defaultStartDate.Add(dayDuration * time.Duration(day))
+			purchaseTimes = append(purchaseTimes, ptime)
+		}
+
+		tickets, err := BulkInsertTicket(i.execer, customer, purchaseTimes)
+		if err != nil {
+			return nil, err
+		}
+
+		for rideIdx, ride := range rides {
+
+			// bulk insert for each ride
+
+			scanTickets := make([]string, 0, len(tickets))
+			scanTimes := make([]time.Time, 0, len(tickets))
+
+			for ticketIdx, ticket := range tickets {
+				isRiddenWithTicket := i.rand.Float32() <= 0.50
+				if !isRiddenWithTicket {
+					continue
+				}
+				stime := purchaseTimes[ticketIdx].Add(time.Minute * 30 * time.Duration(rideIdx))
+				scanTickets = append(scanTickets, ticket)
+				scanTimes = append(scanTimes, stime)
+			}
+
+			_, err := BulkInsertTicketScan(i.execer, ride, scanTickets, scanTimes)
+			if err != nil {
+				return nil, err
+			}
+		} // ride
+	} // customer
+
+	return nil, nil
 }
 
 func (i *Inserter) doInsertMaintenance(rideID string, maintenanceTypes []string) ([]string, error) {
@@ -209,40 +284,31 @@ func (i *Inserter) doInsertMaintenance(rideID string, maintenanceTypes []string)
 	allMaintenance := make([]string, 0)
 
 	start := time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC)
-	monthDuration := time.Hour * 24 * 7 * 4
-	yearDuration := monthDuration * 12
 
-	// assuming:
-	// 1 year = 12 months
-	// 1 month = 4 weeks
-	// 1 week = 7 days
-	// 1 day = 24 hours
-	for year := 0; year < 10; year++ {
-		for month := 0; month < 12; month++ {
+	for month := 0; month < defaultMonthsToGenerate; month++ {
 
-			monthStart := start.Add(yearDuration * time.Duration(year)).Add(monthDuration * time.Duration(month))
-			maintenancePerMonth := i.rand.Intn(10)
+		monthStart := start.Add(monthDuration * time.Duration(month))
+		maintenancePerMonth := i.rand.Intn(10)
 
-			for idx := 0; idx < maintenancePerMonth; idx++ {
+		for idx := 0; idx < maintenancePerMonth; idx++ {
 
-				maintenanceStart := monthStart.Add(monthDuration / time.Duration(maintenancePerMonth))
-				maintenanceEnd := sql.NullTime{Time: maintenanceStart.Add(time.Hour * 24), Valid: true}
+			maintenanceStart := monthStart.Add(monthDuration / time.Duration(maintenancePerMonth))
+			maintenanceEnd := sql.NullTime{Time: maintenanceStart.Add(time.Hour * 24), Valid: true}
 
-				maintenanceType, err := i.rand.FromStringSlice(maintenanceTypes)
-				if err != nil {
-					return nil, err
-				}
+			maintenanceType, err := i.rand.FromStringSlice(maintenanceTypes)
+			if err != nil {
+				return nil, err
+			}
 
-				maintenanceID, err := InsertMaintenanceWithStartAndEnd(i.execer, rideID, maintenanceType, maintenanceStart, maintenanceEnd)
-				if err != nil {
-					return nil, err
-				}
+			maintenanceID, err := InsertMaintenanceWithStartAndEnd(i.execer, rideID, maintenanceType, maintenanceStart, maintenanceEnd)
+			if err != nil {
+				return nil, err
+			}
 
-				allMaintenance = append(allMaintenance, maintenanceID)
+			allMaintenance = append(allMaintenance, maintenanceID)
 
-			} // maintenance
-		} // month
-	} // year
+		} // maintenance
+	} // month
 
 	return allMaintenance, nil
 }
