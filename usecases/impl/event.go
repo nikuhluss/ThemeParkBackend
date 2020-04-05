@@ -21,7 +21,7 @@ var (
 // EventUsecaseImpl implements the EventUsecase interface.
 type EventUsecaseImpl struct {
 	eventRepo repos.EventRepository
-	timeout  time.Duration
+	timeout   time.Duration
 }
 
 // NewEventUsecaseImpl returns a new EventUsecaseImpl instance. The timeout
@@ -57,9 +57,9 @@ func (eu *EventUsecaseImpl) Fetch(ctx context.Context) ([]*models.Event, error) 
 	return allEvent, nil
 }
 
-// FetchForDay is like fetch, but fetches all events jobs for a specific day.
-func (eu *EventUsecaseImpl) FetchForDay(ctx context.Context, day time.Time) ([]*models.Event, error) {
-	event, err := eu.eventRepo.FetchForDay(day)
+// FetchSince is like fetch, but fetches all events since a specific time.
+func (eu *EventUsecaseImpl) FetchSince(ctx context.Context, day time.Time) ([]*models.Event, error) {
+	event, err := eu.eventRepo.FetchSince(day)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,6 @@ func validateEvent(event *models.Event) error {
 	if !validName.MatchString(strings.ToLower(event.LastName)) {
 		return fmt.Errorf("validateEvent: invalid last name format")
 	}
-
 
 	return nil
 }

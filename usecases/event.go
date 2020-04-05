@@ -11,7 +11,7 @@ import (
 type EventUsecase interface {
 	GetByID(ctx context.Context, ID string) (*models.Event, error)
 	Fetch(ctx context.Context) ([]*models.Event, error)
-	FetchForDay(ctx context.Context, day time.Time) ([]*models.Event, error)
+	FetchSince(ctx context.Context, since time.Time) ([]*models.Event, error)
 	Store(ctx context.Context, event *models.Event) error
 	Update(ctx context.Context, event *models.Event) error
 	Delete(ctx context.Context, ID string) error
