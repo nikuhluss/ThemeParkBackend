@@ -64,6 +64,14 @@ func MakeMaintenanceRepositoryFixture() (*repos.MaintenanceRepository, *sqlx.DB,
 	}
 }
 
+func MakeTicketRepositoryFixture() (*repos.TicketRepository, *sqlx.DB, func()) {
+	db, dbTeardown := MakeDatabaseFixture()
+	ticketRepository := repos.NewTicketRepository(db)
+	return ticketRepository, db, func() {
+		dbTeardown()
+	}
+}
+
 // Make*RepositoryFixtureWithDB
 // --------------------------------
 
@@ -90,4 +98,9 @@ func MakeReviewRepositoryFixtureWithDB(db *sqlx.DB) (*repos.ReviewRepository, fu
 func MakeMaintenanceRepositoryFixtureWithDB(db *sqlx.DB) (*repos.MaintenanceRepository, func()) {
 	maintenanceRepository := repos.NewMaintenanceRepository(db)
 	return maintenanceRepository, func() {}
+}
+
+func MakeTicketRepositoryFixtureWithDB(db *sqlx.DB) (*repos.TicketRepository, func()) {
+	ticketRepository := repos.NewTicketRepository(db)
+	return ticketRepository, func() {}
 }
