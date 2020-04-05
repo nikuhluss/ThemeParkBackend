@@ -10,7 +10,7 @@ type UserRepository interface {
 	GetByEmail(email string) (*models.User, error)
 	GetByUsername(username string) (*models.User, error)
 
-	Fetch() ([]*models.User, string, error)
+	Fetch() ([]*models.User, error)
 	FetchCustomers() ([]*models.User, error)
 	FetchEmployees() ([]*models.User, error)
 
