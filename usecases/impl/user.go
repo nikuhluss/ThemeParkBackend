@@ -39,8 +39,17 @@ func NewUserUsecaseImpl(
 
 // GetByID fetches user from the repositories using the given ID.
 func (uu *UserUsecaseImpl) GetByID(ctx context.Context, ID string) (*models.User, error) {
-
 	user, err := uu.userRepo.GetByID(ID)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching user: %s", err)
+	}
+
+	return user, nil
+}
+
+// GetByEmail fetches user from the repositories using the given email.
+func (uu *UserUsecaseImpl) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	user, err := uu.userRepo.GetByEmail(email)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching user: %s", err)
 	}

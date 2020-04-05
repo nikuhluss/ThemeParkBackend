@@ -9,6 +9,7 @@ import (
 // UserUsecase is the usecase for interacting with users.
 type UserUsecase interface {
 	GetByID(context.Context, string) (*models.User, error)
+	GetByEmail(context.Context, string) (*models.User, error)
 	Fetch(context.Context) ([]*models.User, error)
 	FetchCustomers(context.Context) ([]*models.User, error)
 	FetchEmployees(context.Context) ([]*models.User, error)

@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -65,12 +66,26 @@ func Start(address string) error {
 	// middleware
 
 	keyAuth := middlew.NewKeyAuth(userUsecase)
+	keyAuthConfig := middleware.DefaultKeyAuthConfig
+	keyAuthConfig.Validator = keyAuth.Validator
+	keyAuthConfig.Skipper = func(c echo.Context) bool {
+		if strings.HasPrefix(c.Path(), "/login") {
+			return true
+		}
+		return false
+	}
 
-	e.Use(middleware.KeyAuth(keyAuth.Validator))
 	e.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+	e.Use(middleware.KeyAuthWithConfig(keyAuthConfig))
 	e.Use(middleware.Logger())
 
 	// handlers
+
+	loginHandler := handlers.NewLoginHandler(keyAuth, userUsecase)
+	err = loginHandler.Bind(e)
+	if err != nil {
+		return err
+	}
 
 	rideHandler := handlers.NewRideHandler(rideUsecase, maintenanceUsecase)
 	err = rideHandler.Bind(e)

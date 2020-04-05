@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/crypto"
+	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/usecases"
 )
 
@@ -25,12 +26,7 @@ func NewKeyAuth(userUsecase usecases.UserUsecase) *KeyAuth {
 }
 
 // Login takes an user and its password and returns a crypto.Key if login was successful.
-func (ka *KeyAuth) Login(ctx context.Context, userID, password string) (crypto.Key, error) {
-	user, err := ka.userUsecase.GetByID(ctx, userID)
-	if err != nil {
-		return crypto.EmptyKey, fmt.Errorf("loginError: %s", err)
-	}
-
+func (ka *KeyAuth) Login(ctx context.Context, user *models.User, password string) (crypto.Key, error) {
 	if !crypto.CompareHashAndPassword(user.PasswordHash, password) {
 		return crypto.EmptyKey, fmt.Errorf("loginError: invalid username or password")
 	}
