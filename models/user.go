@@ -14,12 +14,12 @@ type User struct {
 	PasswordHash string    `db:"password_hash" json:"passwordHash"`
 	RegisteredOn time.Time `db:"registered_on" json:"registeredOn"`
 
-	Gender      sql.NullString `json:"gender"`
-	FirstName   sql.NullString `db:"first_name" json:"firstName"`
-	LastName    sql.NullString `db:"last_name" json:"lastName"`
-	DateOfBirth sql.NullTime   `db:"date_of_birth" json:"dateOfBirth"`
-	Phone       sql.NullString `json:"phone"`
-	Address     sql.NullString `json:"address"`
+	Gender      NullString `json:"gender"`
+	FirstName   NullString `db:"first_name" json:"firstName"`
+	LastName    NullString `db:"last_name" json:"lastName"`
+	DateOfBirth NullTime   `db:"date_of_birth" json:"dateOfBirth"`
+	Phone       NullString `json:"phone"`
+	Address     NullString `json:"address"`
 
 	IsEmployee bool           `db:"is_employee" json:"isEmployee"`
 	Role       sql.NullString `json:"role"`

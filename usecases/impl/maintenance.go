@@ -73,7 +73,7 @@ func (mu *MaintenanceUsecaseImpl) Begin(ctx context.Context, maintenance *models
 	}
 
 	maintenance.ID = uuid
-	maintenance.End = sql.NullTime{}
+	maintenance.End = models.NullTime{}
 	cleanMaintenance(maintenance)
 	err = validateMaintenance(maintenance)
 	if err != nil {
@@ -101,7 +101,7 @@ func (mu *MaintenanceUsecaseImpl) Update(ctx context.Context, maintenance *model
 		return err
 	}
 
-	maintenance.End = sql.NullTime{}
+	maintenance.End = models.NullTime{}
 	err = mu.maintenanceRepo.Update(maintenance)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (mu *MaintenanceUsecaseImpl) Close(ctx context.Context, ID string) (*models
 		return nil, errMaintenanceDoesNotExists
 	}
 
-	maintenance.End = sql.NullTime{Time: time.Now(), Valid: true}
+	maintenance.End = models.FromSQLNullTime(sql.NullTime{Time: time.Now(), Valid: true})
 	err = mu.maintenanceRepo.Update(maintenance)
 	if err != nil {
 		return nil, err

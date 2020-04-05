@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -14,9 +13,9 @@ type Ticket struct {
 	PurchasedOn       time.Time `db:"purchased_on" json:"purchasedOn"`
 	PurchaseReference string    `db:"purchase_reference" json:"purchaseReference"`
 
-	Email     string         `json:"email"`
-	FirstName sql.NullString `db:"first_name" json:"firstName"`
-	LastName  sql.NullString `db:"last_name" json:"lastName"`
+	Email     string     `json:"email"`
+	FirstName NullString `db:"first_name" json:"firstName"`
+	LastName  NullString `db:"last_name" json:"lastName"`
 }
 
 // TicketScan struct contains information about a ticket scan.
@@ -26,8 +25,8 @@ type TicketScan struct {
 	RideID   string    `db:"ride_id" json:"rideId"`
 	ScanOn   time.Time `db:"scan_datetime" json:"scanOn"`
 
-	UserID    string         `db:"user_id" json:"userId"`
-	Email     string         `json:"email"`
-	FirstName sql.NullString `db:"first_name" json:"firstName"`
-	LastName  sql.NullString `db:"last_name" json:"lastName"`
+	UserID    string     `db:"user_id" json:"userId"`
+	Email     string     `json:"email"`
+	FirstName NullString `db:"first_name" json:"firstName"`
+	LastName  NullString `db:"last_name" json:"lastName"`
 }

@@ -142,7 +142,7 @@ func TestMaintenanceUpdateSucceeds(t *testing.T) {
 	}
 
 	expectedMaintenance := models.NewMaintenance(maintenance.ID, rideID, "new name", "Replacement", "new description", 70, maintenance.Start, users)
-	expectedMaintenance.End = sql.NullTime{Time: time.Now(), Valid: true}
+	expectedMaintenance.End = models.FromSQLNullTime(sql.NullTime{Time: time.Now(), Valid: true})
 
 	err = maintenanceRepository.Update(expectedMaintenance)
 	if !assert.Nil(t, err) {

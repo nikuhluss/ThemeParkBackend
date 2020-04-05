@@ -187,11 +187,11 @@ func TestUserUpdateCustomerSucceeds(t *testing.T) {
 	// create expected user. Note that not all values can be updated (password, registered_on, etc)
 	expectedUser := models.NewCustomer(user.ID, "expected--Email", user.PasswordSalt, user.PasswordHash)
 	expectedUser.RegisteredOn = user.RegisteredOn
-	expectedUser.Gender = sql.NullString{String: "Other", Valid: true}
-	expectedUser.FirstName = sql.NullString{String: "expected--first_name", Valid: true}
-	expectedUser.LastName = sql.NullString{String: "expected--last_name", Valid: true}
-	expectedUser.Phone = sql.NullString{String: "expected--phone", Valid: true}
-	expectedUser.Address = sql.NullString{String: "expected--address", Valid: true}
+	expectedUser.Gender = models.FromSQLNullString(sql.NullString{String: "Other", Valid: true})
+	expectedUser.FirstName = models.FromSQLNullString(sql.NullString{String: "expected--first_name", Valid: true})
+	expectedUser.LastName = models.FromSQLNullString(sql.NullString{String: "expected--last_name", Valid: true})
+	expectedUser.Phone = models.FromSQLNullString(sql.NullString{String: "expected--phone", Valid: true})
+	expectedUser.Address = models.FromSQLNullString(sql.NullString{String: "expected--address", Valid: true})
 
 	err = userRepository.Update(expectedUser)
 	if !assert.Nil(t, err) {
