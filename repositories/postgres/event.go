@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"time"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
@@ -45,6 +46,22 @@ func (er *EventRepository) Fetch() ([]*models.Event, error) {
 
 	events := []*models.Event{}
 	err := udb.Select(&events, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
+
+// Fetch fetches all events.
+func (er *EventRepository) FetchForDay(day time.Time) ([]*models.Event, error) {
+	db := er.db
+	udb := db.Unsafe()
+
+	query, _ := selectEvents.Where(sq.Eq{"events.id": "$1"}).MustSql()
+
+	events := []*models.Event{}
+	err := udb.Select(&events, query, day)
 	if err != nil {
 		return nil, err
 	}
