@@ -70,5 +70,11 @@ func Start(address string) error {
 		return err
 	}
 
+	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceUsecase)
+	err = maintenanceHandler.Bind(e)
+	if err != nil {
+		return err
+	}
+
 	return e.Start(address)
 }
