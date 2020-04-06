@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
@@ -53,12 +54,12 @@ func (er *EventRepository) Fetch() ([]*models.Event, error) {
 	return events, nil
 }
 
-// Fetch fetches all events.
+// FetchSince fetches all events since given time.
 func (er *EventRepository) FetchSince(since time.Time) ([]*models.Event, error) {
 	db := er.db
 	udb := db.Unsafe()
 
-	query, _ := selectEvents.Where(sq.Eq{"events.id": "$1"}).MustSql()
+	query, _ := selectEvents.Where(sq.GtOrEq{"events.posted_on": "$1"}).MustSql()
 
 	events := []*models.Event{}
 	err := udb.Select(&events, query, since)
