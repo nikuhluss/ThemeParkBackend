@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"time"
+
 	"github.com/labstack/echo/v4"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/usecases"
@@ -13,6 +14,7 @@ type EventHandler struct {
 	eventUsecase usecases.EventUsecase
 }
 
+// NewEventHandler returns a new event handler instance.
 func NewEventHandler(eventUsecase usecases.EventUsecase) *EventHandler {
 	return &EventHandler{
 		eventUsecase,
@@ -22,8 +24,8 @@ func NewEventHandler(eventUsecase usecases.EventUsecase) *EventHandler {
 // Bind sets up the routes for the handler.
 func (eh *EventHandler) Bind(e *echo.Echo) error {
 	e.GET("/events", eh.Fetch)
+	e.POST("/events", eh.Store)
 	e.GET("/events/:eventID", eh.GetByID)
-	e.POST("/events/store", eh.Store)
 	e.PUT("/events/:eventID", eh.Update)
 	e.DELETE("/event/:eventID", eh.Delete)
 	return nil
@@ -48,13 +50,12 @@ func (eh *EventHandler) Fetch(c echo.Context) error {
 	day, _ := time.Parse(time.RFC3339, c.QueryParam("date"))
 	var err error
 	var event []*models.Event
-	if len(c.QueryParam("date")) == 0{
+	if len(c.QueryParam("date")) == 0 {
 		event, err = eh.eventUsecase.Fetch(ctx)
-	} else{
+	} else {
 		event, err = eh.eventUsecase.FetchSince(ctx, day)
 	}
 
-	
 	if err != nil {
 		return c.JSONPretty(http.StatusInternalServerError, ResponseError{err.Error()}, Indent)
 	}

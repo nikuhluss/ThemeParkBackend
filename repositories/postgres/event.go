@@ -22,6 +22,11 @@ type EventRepository struct {
 	db *sqlx.DB
 }
 
+// NewEventRepository creates a new EventRepository instance.
+func NewEventRepository(db *sqlx.DB) *EventRepository {
+	return &EventRepository{db}
+}
+
 // GetByID fetches an event using the given ID.
 func (er *EventRepository) GetByID(ID string) (*models.Event, error) {
 	db := er.db

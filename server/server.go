@@ -54,6 +54,7 @@ func Start(address string) error {
 	reviewRepo := repos.NewReviewRepository(db)
 	maintenanceRepo := repos.NewMaintenanceRepository(db)
 	ticketRepo := repos.NewTicketRepository(db)
+	eventRepo := repos.NewEventRepository(db)
 
 	// usecases
 
@@ -62,6 +63,7 @@ func Start(address string) error {
 	rideUsecase := usecases.NewRideUsecaseImpl(rideRepo, pictureRepo, reviewRepo, timeout)
 	maintenanceUsecase := usecases.NewMaintenanceUsecaseImpl(maintenanceRepo, timeout)
 	ticketUsecase := usecases.NewTicketUsecaseImpl(ticketRepo, rideRepo, userRepo)
+	eventUsecase := usecases.NewEventUsecaseImpl(eventRepo, timeout)
 
 	// middleware
 
@@ -87,6 +89,12 @@ func Start(address string) error {
 		return err
 	}
 
+	userHandler := handlers.NewUserHandler(userUsecase)
+	err = userHandler.Bind(e)
+	if err != nil {
+		return err
+	}
+
 	rideHandler := handlers.NewRideHandler(rideUsecase, maintenanceUsecase)
 	err = rideHandler.Bind(e)
 	if err != nil {
@@ -101,6 +109,12 @@ func Start(address string) error {
 
 	ticketHandler := handlers.NewTicketHandler(ticketUsecase)
 	err = ticketHandler.Bind(e)
+	if err != nil {
+		return err
+	}
+
+	eventHandler := handlers.NewEventHandler(eventUsecase)
+	err = eventHandler.Bind(e)
 	if err != nil {
 		return err
 	}

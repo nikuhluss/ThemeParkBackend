@@ -58,5 +58,5 @@ func (lh *LoginHandler) Login(c echo.Context) error {
 		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
 	}
 
-	return c.JSONPretty(http.StatusOK, map[string]string{"key": key.Encode()}, Indent)
+	return c.JSONPretty(http.StatusOK, map[string]string{"userId": user.ID, "key": key.Encode()}, Indent)
 }

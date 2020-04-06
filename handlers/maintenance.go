@@ -14,6 +14,7 @@ type MaintenanceHandler struct {
 	maintenanceUsecase usecases.MaintenanceUsecase
 }
 
+// NewMaintenanceHandler returns a new MaintenanceHanler instance.
 func NewMaintenanceHandler(maintenanceUsecase usecases.MaintenanceUsecase) *MaintenanceHandler {
 	return &MaintenanceHandler{
 		maintenanceUsecase,
@@ -22,9 +23,9 @@ func NewMaintenanceHandler(maintenanceUsecase usecases.MaintenanceUsecase) *Main
 
 // Bind sets up the routes for the handler.
 func (mh *MaintenanceHandler) Bind(e *echo.Echo) error {
-	e.GET("/maintenance/:maintenanceID", mh.GetByID)
 	e.GET("/maintenance", mh.Fetch)
-	e.POST("/maintenance/begin", mh.Store)
+	e.POST("/maintenance", mh.Store)
+	e.GET("/maintenance/:maintenanceID", mh.GetByID)
 	e.PUT("/maintenance/:maintenanceID", mh.Update)
 	e.POST("/maintenance/:maintenanceID/close", mh.Close)
 	e.DELETE("/maintenance/:maintenanceID", mh.Delete)

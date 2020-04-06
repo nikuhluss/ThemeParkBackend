@@ -134,6 +134,15 @@ func (eu *EventUsecaseImpl) Delete(ctx context.Context, ID string) error {
 	return nil
 }
 
+// AvailableEventTypes returns the available event types.
+func (eu *EventUsecaseImpl) AvailableEventTypes(ctx context.Context) ([]*models.EventType, error) {
+	etypes, err := eu.eventRepo.AvailableEventTypes()
+	if err != nil {
+		return nil, err
+	}
+	return etypes, nil
+}
+
 func cleanEvent(event *models.Event) {
 	event.ID = strings.TrimSpace(event.ID)
 	event.EmployeeID = strings.TrimSpace(event.EmployeeID)
