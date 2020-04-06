@@ -21,9 +21,9 @@ type User struct {
 	Phone       NullString `json:"phone"`
 	Address     NullString `json:"address"`
 
-	IsEmployee bool           `db:"is_employee" json:"isEmployee"`
-	Role       sql.NullString `json:"role"`
-	HourlyRate float32        `db:"hourly_rate" json:"hourlyRate"`
+	IsEmployee bool       `db:"is_employee" json:"isEmployee"`
+	Role       NullString `json:"role"`
+	HourlyRate float32    `db:"hourly_rate" json:"hourlyRate"`
 }
 
 // NewCustomer returns a new User instance that is a customer.
@@ -47,7 +47,7 @@ func NewEmployee(ID, email, passwordSalt, passwordHash, role string, hourlyRate 
 		PasswordHash: passwordHash,
 		RegisteredOn: time.Now(),
 		IsEmployee:   true,
-		Role:         sql.NullString{String: role, Valid: true},
+		Role:         FromSQLNullString(sql.NullString{String: role, Valid: true}),
 		HourlyRate:   hourlyRate,
 	}
 }

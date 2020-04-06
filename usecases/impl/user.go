@@ -164,8 +164,7 @@ func cleanEmployee(employee *models.User) {
 func validateUser(user *models.User) error {
 	var validEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	var validName = regexp.MustCompile(`^[A-z]`)
-	var validPhone = regexp.MustCompile(`^[0-9]`)
-	var validPhone2 = regexp.MustCompile(`^[0-9]+\-+[0-9]+\-+[0-9]`)
+	var validPhone = regexp.MustCompile(`^[0-9]+$`)
 
 	if len(user.ID) <= 0 {
 		return fmt.Errorf("validateUser: ID must be non-empty")
@@ -175,19 +174,19 @@ func validateUser(user *models.User) error {
 		return fmt.Errorf("validateUser: email must be non-empty")
 	}
 
-	if len(user.FirstName.String) <= 0 {
+	if user.FirstName.Valid && len(user.FirstName.String) <= 0 {
 		return fmt.Errorf("validateUser: first name must be non-empty")
 	}
 
-	if len(user.LastName.String) <= 0 {
+	if user.LastName.Valid && len(user.LastName.String) <= 0 {
 		return fmt.Errorf("validateUser: last name must be non-empty")
 	}
 
-	if len(user.Phone.String) <= 0 {
+	if user.Phone.Valid && len(user.Phone.String) <= 0 {
 		return fmt.Errorf("validateUser: phone number must be non-empty")
 	}
 
-	if len(user.Address.String) <= 0 {
+	if user.Address.Valid && len(user.Address.String) <= 0 {
 		return fmt.Errorf("validateUser: address must be non-empty")
 	}
 
@@ -195,15 +194,15 @@ func validateUser(user *models.User) error {
 		return fmt.Errorf("validateUser: invalid email address format")
 	}
 
-	if !validName.MatchString(strings.ToLower(user.FirstName.String)) {
+	if user.FirstName.Valid && !validName.MatchString(strings.ToLower(user.FirstName.String)) {
 		return fmt.Errorf("validateUser: invalid first name format")
 	}
 
-	if !validName.MatchString(strings.ToLower(user.LastName.String)) {
+	if user.LastName.Valid && !validName.MatchString(strings.ToLower(user.LastName.String)) {
 		return fmt.Errorf("validateUser: invalid last name format")
 	}
 
-	if !validPhone.MatchString(strings.ToLower(user.Phone.String)) && len(user.Phone.String) < 10 || !validPhone2.MatchString(strings.ToLower(user.Phone.String)) && len(user.Phone.String) < 13 {
+	if user.Phone.Valid && !validPhone.MatchString(strings.ToLower(user.Phone.String)) {
 		return fmt.Errorf("validateUser: invalid phone number format")
 	}
 

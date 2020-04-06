@@ -168,7 +168,7 @@ func TestUserStoreEmployeeSucceeds(t *testing.T) {
 
 	assert.NotNil(t, user)
 	assert.True(t, user.IsEmployee)
-	assert.Equal(t, sql.NullString{String: role, Valid: true}, user.Role)
+	assert.Equal(t, models.FromSQLNullString(sql.NullString{String: role, Valid: true}), user.Role)
 	assert.Greater(t, user.HourlyRate, float32(0))
 }
 
