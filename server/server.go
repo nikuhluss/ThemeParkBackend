@@ -34,7 +34,7 @@ func notImplemented(c echo.Context) error {
 }
 
 // Start starts and HTTP server.
-func Start(address string) error {
+func Start(address string, testing bool) error {
 
 	e := echo.New()
 
@@ -83,7 +83,9 @@ func Start(address string) error {
 	corsConfig.AllowCredentials = true
 
 	e.Use(middleware.CORSWithConfig(corsConfig))
-	e.Use(middleware.KeyAuthWithConfig(keyAuthConfig))
+	if !testing {
+		e.Use(middleware.KeyAuthWithConfig(keyAuthConfig))
+	}
 	e.Use(middleware.Logger())
 
 	// handlers

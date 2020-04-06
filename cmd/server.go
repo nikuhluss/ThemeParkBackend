@@ -17,7 +17,7 @@ var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Starts the HTTP server",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := server.Start(":5000")
+		err := server.Start(":5000", testing)
 		if err != nil {
 			fmt.Printf("error starting server: %s\n", err)
 			os.Exit(1)

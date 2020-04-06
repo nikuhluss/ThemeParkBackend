@@ -19,7 +19,7 @@ func (ns *NullString) UnmarshalJSON(data []byte) error {
 
 	var x *string
 
-	err := json.Unmarshal(data, x)
+	err := json.Unmarshal(data, &x)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (nt *NullTime) UnmarshalJSON(data []byte) error {
 
 	var x *time.Time
 
-	err := json.Unmarshal(data, x)
+	err := json.Unmarshal(data, &x)
 	if err != nil {
 		return err
 	}
