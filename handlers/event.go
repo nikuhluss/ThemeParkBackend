@@ -51,7 +51,7 @@ func (eh *EventHandler) Fetch(c echo.Context) error {
 	if len(c.QueryParam("date")) == 0{
 		event, err = eh.eventUsecase.Fetch(ctx)
 	} else{
-		event, err = eh.eventUsecase.FetchForDay(ctx, day)
+		event, err = eh.eventUsecase.FetchSince(ctx, day)
 	}
 
 	

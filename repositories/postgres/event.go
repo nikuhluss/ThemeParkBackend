@@ -54,14 +54,14 @@ func (er *EventRepository) Fetch() ([]*models.Event, error) {
 }
 
 // Fetch fetches all events.
-func (er *EventRepository) FetchForDay(day time.Time) ([]*models.Event, error) {
+func (er *EventRepository) FetchSince(since time.Time) ([]*models.Event, error) {
 	db := er.db
 	udb := db.Unsafe()
 
 	query, _ := selectEvents.Where(sq.Eq{"events.id": "$1"}).MustSql()
 
 	events := []*models.Event{}
-	err := udb.Select(&events, query, day)
+	err := udb.Select(&events, query, since)
 	if err != nil {
 		return nil, err
 	}

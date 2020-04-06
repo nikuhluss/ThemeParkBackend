@@ -9,7 +9,7 @@ import (
 type EventRepository interface {
 	GetByID(ID string) (*models.Event, error)
 	Fetch() ([]*models.Event, error)
-	FetchForDay(day time.Time) ([]*models.Event, error)
+	FetchSince(day time.Time) ([]*models.Event, error)
 	Store(event *models.Event) error
 	Update(event *models.Event) error
 	Delete(eventID string) error
