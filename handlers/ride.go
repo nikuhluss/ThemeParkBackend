@@ -75,7 +75,7 @@ func (rh *RideHandler) GetByID(c echo.Context) error {
 		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
 	}
 
-	return c.JSONPretty(http.StatusFound, ride, Indent)
+	return c.JSONPretty(http.StatusOK, ride, Indent)
 }
 
 // Update updates a specific ride.

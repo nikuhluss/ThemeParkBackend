@@ -41,7 +41,7 @@ func (eh *EventHandler) GetByID(c echo.Context) error {
 		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
 	}
 
-	return c.JSONPretty(http.StatusFound, event, Indent)
+	return c.JSONPretty(http.StatusOK, event, Indent)
 }
 
 // Fetch fetches all events.

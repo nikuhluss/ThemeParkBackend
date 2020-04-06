@@ -11,7 +11,7 @@ import (
 
 // UserHandler handles HTTP requests for users.
 type UserHandler struct {
-	userUsecase        usecases.UserUsecase
+	userUsecase usecases.UserUsecase
 }
 
 // NewUserHandler returns a new UserHandler instance.
@@ -78,7 +78,7 @@ func (uh *UserHandler) GetByID(c echo.Context) error {
 		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
 	}
 
-	return c.JSONPretty(http.StatusFound, user, Indent)
+	return c.JSONPretty(http.StatusOK, user, Indent)
 }
 
 // Store creates a new user.

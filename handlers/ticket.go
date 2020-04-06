@@ -92,7 +92,7 @@ func (th *TicketHandler) GetByID(c echo.Context) error {
 		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
 	}
 
-	return c.JSONPretty(http.StatusFound, ticket, Indent)
+	return c.JSONPretty(http.StatusOK, ticket, Indent)
 }
 
 // Update updates a specific ticket.

@@ -42,7 +42,7 @@ func (mh *MaintenanceHandler) GetByID(c echo.Context) error {
 		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
 	}
 
-	return c.JSONPretty(http.StatusFound, maintenance, Indent)
+	return c.JSONPretty(http.StatusOK, maintenance, Indent)
 }
 
 // Fetch fetches all maintenance.

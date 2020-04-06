@@ -77,7 +77,12 @@ func Start(address string) error {
 		return false
 	}
 
-	e.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+	corsConfig := middleware.DefaultCORSConfig
+	corsConfig.AllowOrigins = []string{"*"}
+	corsConfig.AllowHeaders = []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"}
+	corsConfig.AllowCredentials = true
+
+	e.Use(middleware.CORSWithConfig(corsConfig))
 	e.Use(middleware.KeyAuthWithConfig(keyAuthConfig))
 	e.Use(middleware.Logger())
 
