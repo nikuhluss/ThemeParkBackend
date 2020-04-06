@@ -20,7 +20,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&testing, "testing", "t", false, "Set testing flag")
+	rootCmd.PersistentFlags().BoolVarP(&testing, "testing", "t", false, "set testing flag")
 }
 
 // Execute executes the root cmd.
