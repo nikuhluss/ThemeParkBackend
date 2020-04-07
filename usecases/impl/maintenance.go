@@ -73,6 +73,7 @@ func (mu *MaintenanceUsecaseImpl) Begin(ctx context.Context, maintenance *models
 	}
 
 	maintenance.ID = uuid
+	maintenance.Start = time.Now().UTC()
 	maintenance.End = models.NullTime{}
 	cleanMaintenance(maintenance)
 	err = validateMaintenance(maintenance)
@@ -143,6 +144,7 @@ func (mu *MaintenanceUsecaseImpl) Delete(ctx context.Context, ID string) error {
 
 func cleanMaintenance(maintenance *models.Maintenance) {
 	maintenance.ID = strings.TrimSpace(maintenance.ID)
+	maintenance.RideID = strings.TrimSpace(maintenance.RideID)
 	maintenance.Description = strings.TrimSpace(maintenance.Description)
 }
 
@@ -150,6 +152,10 @@ func validateMaintenance(maintenance *models.Maintenance) error {
 
 	if len(maintenance.ID) <= 0 {
 		return fmt.Errorf("validateMaintenance: ID must be non-empty")
+	}
+
+	if len(maintenance.RideID) <= 0 {
+		return fmt.Errorf("validateMaintenance: RideID must be non-empty")
 	}
 
 	if len(maintenance.Description) <= 0 {

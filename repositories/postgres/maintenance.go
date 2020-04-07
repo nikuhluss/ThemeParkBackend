@@ -13,7 +13,8 @@ var selectMaintenance = psql.
 	Select("rides_maintenance.*", "maintenance_types.maintenance_type", "rides.name AS ride_name").
 	From("rides_maintenance").
 	Join("rides ON rides.ID = rides_maintenance.ride_ID").
-	LeftJoin("maintenance_types ON maintenance_types.ID = rides_maintenance.maintenance_type_ID")
+	LeftJoin("maintenance_types ON maintenance_types.ID = rides_maintenance.maintenance_type_ID").
+	OrderBy("rides_maintenance.start_datetime DESC")
 
 // MaintenanceRepository implements the MaintenanceRepository interface for postgres.
 type MaintenanceRepository struct {
