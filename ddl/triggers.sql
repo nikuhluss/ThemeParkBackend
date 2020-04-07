@@ -135,6 +135,16 @@ CREATE TRIGGER ride_maintenance_closed_event
     WHEN (OLD.end_datetime IS NULL AND NEW.end_datetime IS NOT NULL)
     EXECUTE FUNCTION emit_maintenance_status_event ('closed');
 
+-- maintenance reopened
+
+DROP TRIGGER IF EXISTS ride_maintenance_reopened_event ON rides_maintenance;
+
+CREATE TRIGGER ride_maintenance_reopened_event
+    AFTER UPDATE ON rides_maintenance
+    FOR EACH ROW
+    WHEN (OLD.end_datetime IS NOT NULL AND NEW.end_datetime IS NULL)
+    EXECUTE FUNCTION emit_maintenance_status_event ('reopened');
+
 -- bad reviews on ride
 
 DROP TRIGGER IF EXISTS ride_bad_reviews_event ON reviews;
