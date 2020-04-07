@@ -61,6 +61,15 @@ rule. For example:
 
 ### Testing
 
+#### Database teardown
+
+Before you setup the database you might want to destroy a previous instance;
+to do so just run:
+
+```sh
+docker-compose down
+```
+
 #### Database setup
 
 **First**, you need to have docker installed. Once that's done, you need to run:
@@ -105,7 +114,14 @@ go run main.go generate
 
 #### Running HTTP server
 
+In dev environment:
+
+```sh
+go run main.go -t server
+```
+
+In production environment:
+
 ```sh
 go run main.go server
 ```
-
