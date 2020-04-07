@@ -246,7 +246,7 @@ func (ur *UserRepository) Update(user *models.User) error {
 
 	updateEmployee, _, _ := psql.Update("employees").
 		Set("role_id", "?").
-		Where("id", "?").
+		Where("user_id = ?").
 		ToSql()
 
 	selectRoleID, _ := psql.

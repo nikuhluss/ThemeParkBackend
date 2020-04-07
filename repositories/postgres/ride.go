@@ -9,7 +9,7 @@ import (
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/models"
 )
 
-var selectRides = psql.Select("rides.*").From("rides")
+var selectRides = psql.Select("rides.*").From("rides").OrderBy("rides.name ASC")
 
 // RideRepository implements the RideRepository interface for postgres.
 type RideRepository struct {

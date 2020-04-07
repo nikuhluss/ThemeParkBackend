@@ -223,7 +223,7 @@ func cleanRide(ride *models.Ride) {
 	ride.ID = strings.TrimSpace(ride.ID)
 	ride.Name = strings.TrimSpace(ride.Name)
 	ride.Description = strings.TrimSpace(ride.Description)
-	ride.MinAge = mathutil.ClampInt(ride.MinHeight, 0, 200)
+	ride.MinAge = mathutil.ClampInt(ride.MinAge, 0, 200)
 	ride.MinHeight = mathutil.ClampInt(ride.MinHeight, 0, 400)
 	ride.Longitude = mathutil.ClampFloat64(ride.Longitude, -180, 180)
 	ride.Latitude = mathutil.ClampFloat64(ride.Latitude, -90, 90)
