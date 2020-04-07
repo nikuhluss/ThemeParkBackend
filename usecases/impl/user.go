@@ -101,6 +101,7 @@ func (uu *UserUsecaseImpl) Store(ctx context.Context, user *models.User) error {
 	}
 
 	user.ID = uuid
+	user.RegisteredOn = time.Now().UTC()
 	cleanUser(user)
 	if user.IsEmployee {
 		cleanEmployee(user)
