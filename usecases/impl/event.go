@@ -3,7 +3,6 @@ package impl
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -145,35 +144,28 @@ func (eu *EventUsecaseImpl) AvailableEventTypes(ctx context.Context) ([]*models.
 
 func cleanEvent(event *models.Event) {
 	event.ID = strings.TrimSpace(event.ID)
-	event.EmployeeID = strings.TrimSpace(event.EmployeeID)
-	event.EventTypeID.ID = strings.TrimSpace(event.EventTypeID.ID)
-	event.EventTypeID.String = strings.TrimSpace(event.EventTypeID.String)
+	event.EventTypeID = strings.TrimSpace(event.EventTypeID)
 	event.EventType = strings.TrimSpace(event.EventType)
 	event.Title = strings.TrimSpace(event.Title)
 	event.Description = strings.TrimSpace(event.Description)
-	event.Email = strings.TrimSpace(event.Email)
-	event.FirstName = strings.TrimSpace(event.FirstName)
-	event.LastName = strings.TrimSpace(event.LastName)
+	event.EmployeeID.String = strings.TrimSpace(event.EmployeeID.String)
+
+	// NOTE: No need to clean values derived from other tables.
+	// TODO: Documenting which are derived values and which aren't.
+	// event.Email = strings.TrimSpace(event.Email)
+	// event.FirstName = strings.TrimSpace(event.FirstName)
+	// event.LastName = strings.TrimSpace(event.LastName)
+
 }
 
 func validateEvent(event *models.Event) error {
-	var validEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	var validName = regexp.MustCompile(`^[A-z]`)
 
 	if len(event.ID) <= 0 {
 		return fmt.Errorf("validateEvent: ID must be non-empty")
 	}
 
-	if len(event.EmployeeID) <= 0 {
-		return fmt.Errorf("validateEvent: email must be non-empty")
-	}
-
-	if len(event.EventTypeID.ID) <= 0 {
-		return fmt.Errorf("validateEvent: EventTypeID ID must be non-empty")
-	}
-
-	if len(event.EventTypeID.String) <= 0 {
-		return fmt.Errorf("validateEvent: EventTypeID String must be non-empty")
+	if len(event.EventTypeID) <= 0 {
+		return fmt.Errorf("validateEvent: event type ID must be non-empty")
 	}
 
 	if len(event.EventType) <= 0 {
@@ -188,28 +180,8 @@ func validateEvent(event *models.Event) error {
 		return fmt.Errorf("validateEvent: description must be non-empty")
 	}
 
-	if len(event.Email) <= 0 {
-		return fmt.Errorf("validateEvent: email must be non-empty")
-	}
-
-	if len(event.FirstName) <= 0 {
-		return fmt.Errorf("validateEvent: first name must be non-empty")
-	}
-
-	if len(event.LastName) <= 0 {
-		return fmt.Errorf("validateEvent: last name must be non-empty")
-	}
-
-	if !validEmail.MatchString(strings.ToLower(event.Email)) {
-		return fmt.Errorf("validateEvent: invalid email address format")
-	}
-
-	if !validName.MatchString(strings.ToLower(event.FirstName)) {
-		return fmt.Errorf("validateEvent: invalid first name format")
-	}
-
-	if !validName.MatchString(strings.ToLower(event.LastName)) {
-		return fmt.Errorf("validateEvent: invalid last name format")
+	if event.EmployeeID.Valid && len(event.EmployeeID.String) <= 0 {
+		return fmt.Errorf("validateEvent: employee ID must be non-empty")
 	}
 
 	return nil

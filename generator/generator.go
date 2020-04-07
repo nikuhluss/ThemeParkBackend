@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"github.com/brianvoe/gofakeit/v4"
 )
 
 const (
@@ -60,6 +62,12 @@ func NewInserter(execer Execer) *Inserter {
 		execer,
 		rand,
 	}
+}
+
+// Seed seeds the internal rand and gofakeit.
+func (i *Inserter) Seed(seed int64) {
+	i.rand.Seed(seed)
+	gofakeit.Seed(seed)
 }
 
 // DoInsert starts inserting everything in the database.
@@ -119,12 +127,27 @@ func (i *Inserter) DoInsert() error {
 		return err
 	}
 
-	maintenanceTypeFixed, err := InsertMaintenanceType(i.execer, "Fixed")
+	maintenanceTypeFixed, err := InsertMaintenanceType(i.execer, "Diagnostic")
 	if err != nil {
 		return err
 	}
 
 	maintenanceTypes := []string{maintenanceTypeTuneUp, maintenanceTypeReplacement, maintenanceTypeFixed}
+
+	// Event Types
+
+	fmt.Println("Inserting event types...")
+	i.execer.Exec("TRUNCATE TABLE event_types CASCADE")
+
+	_, err = InsertEventType(i.execer, "System")
+	if err != nil {
+		return err
+	}
+
+	_, err = InsertEventType(i.execer, "Rainout")
+	if err != nil {
+		return err
+	}
 
 	// Customers
 

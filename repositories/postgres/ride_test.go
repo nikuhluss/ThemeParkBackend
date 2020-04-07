@@ -51,8 +51,8 @@ func TestRideGetByIDSucceeds(t *testing.T) {
 		}
 
 		assert.Equal(t, rideID, ride.ID)
-		assert.Equal(t, rideID+" -- name", ride.Name)
-		assert.Equal(t, rideID+" -- description", ride.Description)
+		assert.NotEmpty(t, ride.Name)
+		assert.NotEmpty(t, ride.Description)
 		assert.Equal(t, 1, ride.MinAge)
 		assert.Equal(t, 2, ride.MinHeight)
 		assert.Equal(t, float64(3.0), ride.Longitude)

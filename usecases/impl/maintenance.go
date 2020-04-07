@@ -118,7 +118,13 @@ func (mu *MaintenanceUsecaseImpl) Close(ctx context.Context, ID string) (*models
 		return nil, errMaintenanceDoesNotExists
 	}
 
-	maintenance.End = models.FromSQLNullTime(sql.NullTime{Time: time.Now(), Valid: true})
+	maintenance.End = models.FromSQLNullTime(sql.NullTime{Time: time.Now().UTC(), Valid: true})
+	cleanMaintenance(maintenance)
+	err = validateMaintenance(maintenance)
+	if err != nil {
+		return nil, err
+	}
+
 	err = mu.maintenanceRepo.Update(maintenance)
 	if err != nil {
 		return nil, err
@@ -162,8 +168,8 @@ func validateMaintenance(maintenance *models.Maintenance) error {
 		return fmt.Errorf("validateMaintenance: description must be non-empty")
 	}
 
-	if maintenance.Cost <= 0 {
-		return fmt.Errorf("validateMaintenance: cost must be positive")
+	if maintenance.Cost < 0 {
+		return fmt.Errorf("validateMaintenance: cost must be non-negative")
 	}
 
 	if maintenance.End.Valid && maintenance.Start.After(maintenance.End.Time) {

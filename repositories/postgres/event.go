@@ -13,9 +13,9 @@ var selectEvents = psql.
 	Select("events.*", "event_types.*", "users.email", "user_details.first_name", "user_details.last_name").
 	From("events").
 	Join("event_types ON event_types.ID = events.event_type_id").
-	Join("users ON users.id = events.employee_id").
+	LeftJoin("users ON users.id = events.employee_id").
 	LeftJoin("user_details ON user_details.user_id = events.employee_id").
-	OrderBy("events.posted_on")
+	OrderBy("events.posted_on DESC")
 
 // EventRepository implements the EventRepository interface for postgres.
 type EventRepository struct {

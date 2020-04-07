@@ -77,6 +77,18 @@ docker-compose exec postgres psql -U postgres -d testdb -c'CREATE SCHEMA theme_p
 docker-compose exec postgres psql -U postgres -d testdb -f /ddl/schema.sql
 ```
 
+**Third**, populate the database with mock that:
+
+```sh
+go run main.go generate
+```
+
+**Fourth**, create triggers:
+
+```sh
+docker-compose exec postgres psql -U postgres -d testdb -f /ddl/triggers.sql
+```
+
 #### Running tests
 
 On the root folder of this project:

@@ -98,7 +98,7 @@ CREATE TABLE shops (
     shop_type_id varchar(64) NOT NULL,
     picture_collection_id varchar(64),
     name varchar(32) NOT NULL,
-    description varchar(128),
+    description varchar(512),
     PRIMARY KEY (id),
     FOREIGN KEY (shop_type_id) REFERENCES shop_types (id),
     FOREIGN KEY (picture_collection_id) REFERENCES picture_collections (id)
@@ -108,7 +108,7 @@ CREATE TABLE items_types (
     id varchar(64) NOT NULL,
     picture_collection_id varchar(64),
     name varchar(32) NOT NULL,
-    description varchar(128),
+    description varchar(512),
     PRIMARY KEY (id),
     FOREIGN KEY (picture_collection_id) REFERENCES picture_collections (id)
 );
@@ -145,7 +145,7 @@ CREATE TABLE rides (
     id varchar(64) NOT NULL,
     picture_collection_id varchar(64),
     name varchar(64) NOT NULL,
-    description varchar(128),
+    description varchar(512),
     min_age integer,
     min_height integer,
     longitude real,
@@ -244,7 +244,7 @@ CREATE TABLE rides_maintenance (
     id varchar(64) NOT NULL,
     ride_id varchar(64) NOT NULL,
     maintenance_type_id varchar(64) NOT NULL,
-    description varchar(128),
+    description varchar(512),
     cost numeric(10, 2),
     start_datetime timestamp NOT NULL,
     end_datetime timestamp,
@@ -280,11 +280,11 @@ CREATE TABLE event_types (
 
 CREATE TABLE events (
     id varchar(64) NOT NULL,
-    employee_id varchar(64) NOT NULL,
     event_type_id varchar(64) NOT NULL,
     title varchar(32) NOT NULL,
-    description varchar(128) NOT NULL,
+    description varchar(512) NOT NULL,
     posted_on timestamp NOT NULL,
+    employee_id varchar(64),
     PRIMARY KEY (id),
     FOREIGN KEY (employee_id) REFERENCES employees (id),
     FOREIGN KEY (event_type_id) REFERENCES event_types (id)

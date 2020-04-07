@@ -16,8 +16,9 @@ import (
 // Non-string fields are filled with incremental values starting with 1.
 func InsertRideWithID(execer Execer, ID string) (string, error) {
 
-	name := fmt.Sprintf("%s -- name", ID)
-	description := fmt.Sprintf("%s -- description", ID)
+	nameTemplate := fmt.Sprintf("%s - ###", gofakeit.BeerName())
+	name := gofakeit.Numerify(nameTemplate)
+	description := gofakeit.Sentence(32)
 	minAge := 1
 	minHeight := 2
 	longitude := 3.0
@@ -38,8 +39,7 @@ func InsertRideWithID(execer Execer, ID string) (string, error) {
 
 // InsertRide is similar to InsertRideWithID but generates the ID instead.
 func InsertRide(execer Execer) (string, error) {
-	IDTemplate := fmt.Sprintf("%s - ####", gofakeit.BeerName())
-	ID := gofakeit.Numerify(IDTemplate)
+	ID := gofakeit.UUID()
 	return InsertRideWithID(execer, ID)
 }
 

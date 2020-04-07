@@ -34,6 +34,7 @@ var generateCmd = &cobra.Command{
 		}
 
 		inserter := generator.NewInserter(tx)
+		inserter.Seed(1)
 		err = inserter.DoInsert()
 		if err != nil {
 			fmt.Println(err)
