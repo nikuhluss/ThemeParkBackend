@@ -32,7 +32,7 @@ func (er *EventRepository) GetByID(ID string) (*models.Event, error) {
 	db := er.db
 	udb := db.Unsafe()
 
-	query, _ := selectEvents.Where(sq.Eq{"events.id": "$1"}).MustSql()
+	query, _ := selectEvents.Where(sq.Eq{"events.id": ID}).MustSql()
 
 	event := models.Event{}
 	err := udb.Get(&event, query, ID)
@@ -97,7 +97,7 @@ func (er *EventRepository) Store(event *models.Event) error {
 	query, _, _ := psql.
 		Insert("events").
 		Columns("id", "employee_id", "event_type_id", "title", "description", "posted_on").
-		Values("$1", "$2", "$3", "$4", "$5", "$6").
+		Values("?", "?", "?", "?", "?", "?").
 		ToSql()
 
 	_, err = db.Exec(query, event.ID, event.EmployeeID, eventTypeID, event.Title, event.Description, event.PostedOn)
