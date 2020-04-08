@@ -27,7 +27,7 @@ func (eh *EventHandler) Bind(e *echo.Echo) error {
 	e.POST("/events", eh.Store)
 	e.GET("/events/:eventID", eh.GetByID)
 	e.PUT("/events/:eventID", eh.Update)
-	e.DELETE("/event/:eventID", eh.Delete)
+	e.DELETE("/events/:eventID", eh.Delete)
 	return nil
 }
 
