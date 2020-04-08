@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"time"
-
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
@@ -79,13 +79,28 @@ func (er *EventRepository) FetchSince(since time.Time) ([]*models.Event, error) 
 func (er *EventRepository) Store(event *models.Event) error {
 	db := er.db
 
+	selectEventTypeID, _ := psql.
+		Select("ID").
+		From("event_types").
+		Where("event_type = $1").
+		MustSql()
+
+	var eventTypeID string
+	err := er.db.Get(&eventTypeID, selectEventTypeID, event.EventType)
+	if err != nil {
+		return fmt.Errorf("selectEventTypeID: %s", err)
+	}
+	if len(eventTypeID) <= 0 {
+		return fmt.Errorf("selectEventTypeID: could not find valid ID for '%s'", event.EventType)
+	}
+
 	query, _, _ := psql.
 		Insert("events").
 		Columns("id", "employee_id", "event_type_id", "title", "description", "posted_on").
 		Values("$1", "$2", "$3", "$4", "$5", "$6").
 		ToSql()
 
-	_, err := db.Exec(query, event.ID, event.EmployeeID, event.EventTypeID, event.Title, event.Description, event.PostedOn)
+	_, err = db.Exec(query, event.ID, event.EmployeeID, eventTypeID, event.Title, event.Description, event.PostedOn)
 	if err != nil {
 		return err
 	}
@@ -97,6 +112,21 @@ func (er *EventRepository) Store(event *models.Event) error {
 func (er *EventRepository) Update(event *models.Event) error {
 	db := er.db
 
+	selectEventTypeID, _ := psql.
+		Select("ID").
+		From("event_types").
+		Where("event_type = $1").
+		MustSql()
+
+	var eventTypeID string
+	err := er.db.Get(&eventTypeID, selectEventTypeID, event.EventType)
+	if err != nil {
+		return fmt.Errorf("selectEventTypeID: %s", err)
+	}
+	if len(eventTypeID) <= 0 {
+		return fmt.Errorf("selectEventTypeID: could not find valid ID for '%s'", event.EventType)
+	}
+
 	query, _, _ := psql.
 		Update("events").
 		Set("employee_id", "$1").
@@ -107,7 +137,7 @@ func (er *EventRepository) Update(event *models.Event) error {
 		Where(sq.Eq{"id": "$6"}).
 		ToSql()
 
-	_, err := db.Exec(query, event.EmployeeID, event.EventTypeID, event.Title, event.Description, event.PostedOn, event.ID)
+	_, err = db.Exec(query, event.EmployeeID, eventTypeID, event.Title, event.Description, event.PostedOn, event.ID)
 	if err != nil {
 		return err
 	}
