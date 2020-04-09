@@ -14,7 +14,7 @@ services:
     image: prest/prest
     restart: unless-stopped
     ports:
-      - "6000:3000"
+      - "5050:3000"
     volumes:
       - "./reports:/queries/reports"
       - "./prest/prest.toml:/prest.toml"
