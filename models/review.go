@@ -14,3 +14,16 @@ type Review struct {
 	Content  string    `json:"content"`
 	PostedOn time.Time `json:"postedOn"`
 }
+
+// NewReview creates a new Review instance
+func NewReview(ID, rating int, title, content string, postedOn time.Time) {
+	return &Review{
+		ID: ID,
+		RideID: "",
+		UserID: "",
+		Rating: rating,
+		Title: title,
+		Content: content,
+		PostedOn: postedOn,
+	}
+}
