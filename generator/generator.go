@@ -144,10 +144,12 @@ func (i *Inserter) DoInsert() error {
 		return err
 	}
 
-	_, err = InsertEventType(i.execer, "Rainout")
+	eventTypeRainout, err := InsertEventType(i.execer, "Rainout")
 	if err != nil {
 		return err
 	}
+
+	// eventTypes := []string{eventTypeRainout}
 
 	// Customers
 
@@ -250,6 +252,15 @@ func (i *Inserter) DoInsert() error {
 		return err
 	}
 
+	// Rainouts
+
+	fmt.Println("Insert rainouts...")
+	i.execer.Exec("TRUNCATE TABLE events CASCADE")
+	_, err = i.doInsertRainouts(eventTypeRainout)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -306,11 +317,9 @@ func (i *Inserter) doInsertMaintenance(rideID string, maintenanceTypes []string)
 
 	allMaintenance := make([]string, 0)
 
-	start := time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC)
-
 	for month := 0; month < defaultMonthsToGenerate; month++ {
 
-		monthStart := start.Add(monthDuration * time.Duration(month))
+		monthStart := defaultStartDate.Add(monthDuration * time.Duration(month))
 		maintenancePerMonth := i.rand.Intn(10)
 
 		for idx := 0; idx < maintenancePerMonth; idx++ {
@@ -334,4 +343,27 @@ func (i *Inserter) doInsertMaintenance(rideID string, maintenanceTypes []string)
 	} // month
 
 	return allMaintenance, nil
+}
+
+func (i *Inserter) doInsertRainouts(rainoutEventID string) ([]string, error) {
+
+	allRainout := make([]string, 0)
+
+	for month := 0; month < defaultMonthsToGenerate; month++ {
+
+		monthStart := defaultStartDate.Add(monthDuration * time.Duration(month))
+		rainoutPerMonth := i.rand.Intn(5)
+
+		for idx := 0; idx < rainoutPerMonth; idx++ {
+			rainoutStart := monthStart.Add(monthDuration / time.Duration(rainoutPerMonth))
+			rainoutID, err := InsertEventWithTitleAndTime(i.execer, rainoutEventID, "Rainout", rainoutStart)
+			if err != nil {
+				return nil, err
+			}
+
+			allRainout = append(allRainout, rainoutID)
+		}
+	}
+
+	return allRainout, nil
 }

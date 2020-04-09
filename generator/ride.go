@@ -18,7 +18,7 @@ func InsertRideWithID(execer Execer, ID string) (string, error) {
 
 	nameTemplate := fmt.Sprintf("%s - ###", gofakeit.BeerName())
 	name := gofakeit.Numerify(nameTemplate)
-	description := gofakeit.Sentence(32)
+	description := gofakeit.Sentence(16)
 	minAge := 1
 	minHeight := 2
 	longitude := 3.0

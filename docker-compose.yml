@@ -8,3 +8,16 @@ services:
       - "./ddl:/ddl"
     environment:
       - POSTGRES_PASSWORD=password
+
+  # see: https://github.com/prest/prest/blob/master/docker-compose.yml
+  prest:
+    image: prest/prest
+    restart: unless-stopped
+    ports:
+      - "5050:3000"
+    volumes:
+      - "./reports:/queries/reports"
+      - "./prest/prest.toml:/prest.toml"
+    depends_on:
+      - postgres
+
