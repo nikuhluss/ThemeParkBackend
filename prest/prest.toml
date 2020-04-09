@@ -7,6 +7,9 @@ debug = true
   pass = "password"
   database = "testdb"
 
+[cors]
+  alloworigin = ["http://localhost:3000"]
+
 [jwt]
   default = false
 
