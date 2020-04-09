@@ -12,16 +12,12 @@ services:
   # see: https://github.com/prest/prest/blob/master/docker-compose.yml
   prest:
     image: prest/prest
+    restart: unless-stopped
     ports:
       - "6000:3000"
-    environment:
-      - PREST_DEBUG=true
-      - PREST_PG_HOST=postgres
-      - PREST_PG_PORT=5432
-      - PREST_PG_USER=postgres
-      - PREST_PG_PASS=password
-      - PREST_PG_DATABASE=testdb
-      - PREST_JWT_DEFAULT=false
+    volumes:
+      - "./reports:/queries/reports"
+      - "./prest/prest.toml:/prest.toml"
     depends_on:
       - postgres
 

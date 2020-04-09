@@ -1,0 +1,18 @@
+debug = true
+
+[pg]
+  host = "postgres"
+  port = 5432
+  user = "postgres"
+  pass = "password"
+  database = "testdb"
+
+[jwt]
+  default = false
+
+[ssl]
+  mode = "disable"
+
+[queries]
+  location = "/queries"
+
