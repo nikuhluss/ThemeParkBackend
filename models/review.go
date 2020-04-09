@@ -16,7 +16,7 @@ type Review struct {
 }
 
 // NewReview creates a new Review instance
-func NewReview(ID, rating int, title, content string, postedOn time.Time) {
+func NewReview(ID string, rating int, title, content string, postedOn time.Time) *Review{
 	return &Review{
 		ID: ID,
 		RideID: "",

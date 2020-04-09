@@ -4,6 +4,7 @@ import (
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/generator"
 
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -78,27 +79,72 @@ func TestReviewFetchSucceeds(t *testing.T) {
 }
 
 func TestReviewStoreSucceeds(t *testing.T) {
-	reviewReposityory, _, teardown := testutil.MakeReviewRepositoryFixture()
+	reviewRepository, _, teardown := testutil.MakeReviewRepositoryFixture()
 	defer teardown()
 
-	expectedReview := models.NewReview("review--ID", 1, "review--ID--title", "review--ID--content", 2)
+	expectedReview := models.NewReview("review--ID", 1, "review--ID--title", "review--ID--content", time.Now())
+	err := reviewRepository.Store(expectedReview)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	ride, err := reviewRepository.GetByID(expectedReview.ID)
+	review, err := reviewRepository.GetByID(expectedReview.ID)
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
+	assert.NotNil(t, review)
+	assert.Equal(t, expectedReview.Rating, review.Rating)
+	assert.Equal(t, expectedReview.Title, review.Title)
+	assert.Equal(t, expectedReview.Content, review.Content)
+	assert.Equal(t, expectedReview.PostedOn, review.PostedOn)
 }
 
 func TestReviewUpdateSucceeds(t *testing.T) {
+	reviewRepository, db, teardown := testutil.MakeReviewRepositoryFixture()
+	defer teardown()
 
+	tests := setupTestReviews(db)
+	reviewID := tests[0]
+
+	review, err := reviewRepository.GetByID(reviewID)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	expectedReview := models.NewReview(review.ID, 2, "new title", "new content", time.Now())
+	err = reviewRepository.Update(expectedReview)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	updatedReview, err := reviewRepository.GetByID(reviewID)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, expectedReview.ID, updatedReview.ID)
+	assert.Equal(t, expectedReview.Rating, updatedReview.Rating)
+	assert.Equal(t, expectedReview.Title, updatedReview.Title)
+	assert.Equal(t, expectedReview.Content, updatedReview.Content)
+	assert.Equal(t, expectedReview.PostedOn, updatedReview.PostedOn)
 }
 
 func TestReviewDeleteSucceeds(t *testing.T) {
+	reviewRepository, db, teardown := testutil.MakeReviewRepositoryFixture()
+	defer teardown()
 
+	tests := setupTestReviews(db)
+	reviewID := tests[0]
+
+	err := reviewRepository.Delete(reviewID)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	review, err := reviewRepository.GetByID(reviewID)
+	assert.Nil(t, review)
+	assert.NotNil(t, err)
 }
 
 
