@@ -80,7 +80,7 @@ func (eu *EventUsecaseImpl) Store(ctx context.Context, event *models.Event) erro
 	}
 
 	event.ID = uuid
-	event.PostedOn = time.Time{}
+	event.PostedOn = time.Now().UTC()
 	cleanEvent(event)
 
 	err = validateEvent(event)
@@ -144,7 +144,6 @@ func (eu *EventUsecaseImpl) AvailableEventTypes(ctx context.Context) ([]*models.
 
 func cleanEvent(event *models.Event) {
 	event.ID = strings.TrimSpace(event.ID)
-	event.EventTypeID = strings.TrimSpace(event.EventTypeID)
 	event.EventType = strings.TrimSpace(event.EventType)
 	event.Title = strings.TrimSpace(event.Title)
 	event.Description = strings.TrimSpace(event.Description)
@@ -164,20 +163,12 @@ func validateEvent(event *models.Event) error {
 		return fmt.Errorf("validateEvent: ID must be non-empty")
 	}
 
-	if len(event.EventTypeID) <= 0 {
-		return fmt.Errorf("validateEvent: event type ID must be non-empty")
-	}
-
 	if len(event.EventType) <= 0 {
 		return fmt.Errorf("validateEvent: event type must be non-empty")
 	}
 
 	if len(event.Title) <= 0 {
 		return fmt.Errorf("validateEvent: title must be non-empty")
-	}
-
-	if len(event.Description) <= 0 {
-		return fmt.Errorf("validateEvent: description must be non-empty")
 	}
 
 	if event.EmployeeID.Valid && len(event.EmployeeID.String) <= 0 {

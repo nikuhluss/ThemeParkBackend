@@ -5,7 +5,6 @@ import "time"
 // Event struct represents an event (rainout, maintenance, etc).
 type Event struct {
 	ID          string     `json:"id"`
-	EventTypeID string     `db:"event_type_id" json:"eventTypeId"`
 	EventType   string     `db:"event_type" json:"eventType"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
