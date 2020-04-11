@@ -38,9 +38,9 @@ func setupTestReviews(db *sqlx.DB) ([]string, []string, []string) {
 
 	// customers[0] posted no reviews, customers[1] posted one review, etc
 	// rides[0] has no reviews, rides[1] has one review, etc
-	reviews = append(reviews, generator.MustInsertReview(tx, rides[1], customers[1], time.Now()))
-	reviews = append(reviews, generator.MustInsertReview(tx, rides[2], customers[1], time.Now()))
-	reviews = append(reviews, generator.MustInsertReview(tx, rides[2], customers[2], time.Now()))
+	reviews = append(reviews, generator.MustInsertReview(tx, rides[1], customers[1], time.Now().UTC()))
+	reviews = append(reviews, generator.MustInsertReview(tx, rides[2], customers[1], time.Now().UTC()))
+	reviews = append(reviews, generator.MustInsertReview(tx, rides[2], customers[2], time.Now().UTC()))
 
 	err := tx.Commit()
 	if err != nil {
