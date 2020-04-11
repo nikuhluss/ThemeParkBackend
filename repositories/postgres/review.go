@@ -91,13 +91,15 @@ func (rr *ReviewRepository) FetchForRideSortedByDate(rideID string) ([]*models.R
 func (rr *ReviewRepository) Store(review *models.Review) error {
 	db := rr.db
 
+	fmt.Println(">", review)
+
 	insertReview, _, _ := psql.
 		Insert("reviews").
-		Columns("ID", "ride_ID", "customer_ID", "rating", "title", "content").
-		Values("?", "?", "?", "?", "?", "?").
+		Columns("ID", "ride_ID", "customer_ID", "rating", "title", "content", "posted_on").
+		Values("?", "?", "?", "?", "?", "?", "?").
 		ToSql()
 
-	_, err := db.Exec(insertReview, review.ID, review.RideID, review.UserID, review.Rating, review.Title, review.Content)
+	_, err := db.Exec(insertReview, review.ID, review.RideID, review.UserID, review.Rating, review.Title, review.Content, review.PostedOn)
 	if err != nil {
 		return fmt.Errorf("insertReview: %s", err)
 	}

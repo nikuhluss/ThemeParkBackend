@@ -51,7 +51,7 @@ func (ru *ReviewUsecaseImpl) FetchForRide(ctx context.Context, rideID string) ([
 // Store creates a new review.
 func (ru *ReviewUsecaseImpl) Store(ctx context.Context, review *models.Review) error {
 	_, err := ru.reviewRepo.GetByID(review.ID)
-	if err != nil {
+	if err == nil {
 		return errReviewExists
 	}
 
@@ -61,6 +61,7 @@ func (ru *ReviewUsecaseImpl) Store(ctx context.Context, review *models.Review) e
 	}
 
 	review.ID = ID
+	review.PostedOn = time.Now().UTC()
 	cleanReview(review)
 	err = validateReview(review)
 	if err != nil {
