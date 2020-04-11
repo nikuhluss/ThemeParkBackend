@@ -116,10 +116,11 @@ func (rr *ReviewRepository) Update(review *models.Review) error {
 		Set("rating", "?").
 		Set("title", "?").
 		Set("content", "?").
+		Set("posted_on", "?").
 		Where("id = ?").
 		ToSql()
 
-	_, err := db.Exec(updateReview, review.RideID, review.UserID, review.Rating, review.Title, review.Content)
+	_, err := db.Exec(updateReview, review.RideID, review.UserID, review.Rating, review.Title, review.Content, review.PostedOn, review.ID)
 	if err != nil {
 		return fmt.Errorf("updateReview: %s", err)
 	}
