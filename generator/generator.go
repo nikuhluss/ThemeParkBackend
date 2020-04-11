@@ -226,6 +226,15 @@ func (i *Inserter) DoInsert() error {
 		rides = append(rides, rideID)
 	}
 
+	// Reviews
+
+	fmt.Println("Inserting reviews...")
+	i.execer.Exec("TRUNCATE TABLE reviews CASCADE")
+	_, err = i.doInsertReviews(customers, rides)
+	if err != nil {
+		return err
+	}
+
 	// Maintenance
 
 	fmt.Println("Inserting maintenance jobs...")
@@ -264,7 +273,32 @@ func (i *Inserter) DoInsert() error {
 	return nil
 }
 
-func (i *Inserter) doInsertTickets(customers []string, rides []string) ([]string, error) {
+func (i *Inserter) doInsertReviews(customers, rides []string) ([]string, error) {
+	allReviews := make([]string, 0)
+
+	for _, rideID := range rides {
+		totalReviews := i.rand.Intn(10)
+		for idx := 0; idx < totalReviews; idx++ {
+
+			customerID, err := i.rand.FromStringSlice(customers)
+			if err != nil {
+				return nil, err
+			}
+			postedOn := gofakeit.DateRange(defaultStartDate, time.Now())
+
+			review, err := InsertReview(i.execer, rideID, customerID, postedOn)
+			if err != nil {
+				return nil, err
+			}
+
+			allReviews = append(allReviews, review)
+		}
+	}
+
+	return allReviews, nil
+}
+
+func (i *Inserter) doInsertTickets(customers, rides []string) ([]string, error) {
 
 	for _, customer := range customers {
 
