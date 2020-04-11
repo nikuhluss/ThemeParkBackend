@@ -13,6 +13,9 @@ FROM (
         rides_maintenance.ride_id AS ride_id,
         COUNT(*) AS total
     FROM theme_park.rides_maintenance
+    {{ if isSet "since" }}
+    WHERE rides_maintenance.start_datetime >= DATE_TRUNC('month', '{{.since}}'::timestamptz)
+    {{ end }}
     GROUP BY year_month, ride_id
 ) AS maintenance_start
 -- join for rides information

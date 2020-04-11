@@ -12,6 +12,9 @@ FROM (
         COUNT(*) AS times_ridden,
         RANK() OVER (PARTITION BY date_trunc('month', scan_datetime) ORDER BY COUNT(*) DESC) AS rnk
 	FROM theme_park.tickets_on_rides
+    {{ if isSet "since" }}
+    WHERE scan_datetime >= DATE_TRUNC('month', '{{.since}}'::timestamptz)
+    {{ end }}
 	GROUP BY date_trunc('month', scan_datetime), ride_id
 ) AS t
 JOIN theme_park.rides ON rides.id = t.ride_id

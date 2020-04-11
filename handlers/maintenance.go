@@ -29,6 +29,7 @@ func (mh *MaintenanceHandler) Bind(e *echo.Echo) error {
 	e.PUT("/maintenance/:maintenanceID", mh.Update)
 	e.POST("/maintenance/:maintenanceID/close", mh.Close)
 	e.DELETE("/maintenance/:maintenanceID", mh.Delete)
+	e.GET("/rides/:rideID/maintenance", mh.FetchForRide)
 	return nil
 }
 
@@ -52,6 +53,19 @@ func (mh *MaintenanceHandler) Fetch(c echo.Context) error {
 	maintenance, err := mh.maintenanceUsecase.Fetch(ctx)
 	if err != nil {
 		return c.JSONPretty(http.StatusInternalServerError, ResponseError{err.Error()}, Indent)
+	}
+
+	return c.JSONPretty(http.StatusOK, maintenance, Indent)
+}
+
+// FetchForRide fetches all maintenance jobs for the given ride.
+func (mh *MaintenanceHandler) FetchForRide(c echo.Context) error {
+	ctx := c.Request().Context()
+	rideID := c.Param("rideID")
+
+	maintenance, err := mh.maintenanceUsecase.FetchForRide(ctx, rideID)
+	if err != nil {
+		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
 	}
 
 	return c.JSONPretty(http.StatusOK, maintenance, Indent)

@@ -61,6 +61,7 @@ func Start(address string, testing bool) error {
 	timeout := time.Second * 2
 	userUsecase := usecases.NewUserUsecaseImpl(userRepo, timeout)
 	rideUsecase := usecases.NewRideUsecaseImpl(rideRepo, pictureRepo, reviewRepo, timeout)
+	reviewUsecase := usecases.NewReviewUsecaseImpl(reviewRepo, rideRepo, timeout)
 	maintenanceUsecase := usecases.NewMaintenanceUsecaseImpl(maintenanceRepo, timeout)
 	ticketUsecase := usecases.NewTicketUsecaseImpl(ticketRepo, rideRepo, userRepo)
 	eventUsecase := usecases.NewEventUsecaseImpl(eventRepo, timeout)
@@ -104,6 +105,12 @@ func Start(address string, testing bool) error {
 
 	rideHandler := handlers.NewRideHandler(rideUsecase, maintenanceUsecase)
 	err = rideHandler.Bind(e)
+	if err != nil {
+		return err
+	}
+
+	reviewHandler := handlers.NewReviewHandler(reviewUsecase)
+	err = reviewHandler.Bind(e)
 	if err != nil {
 		return err
 	}

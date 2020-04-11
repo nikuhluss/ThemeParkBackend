@@ -55,6 +55,43 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 
+
+-- emit_bad_review_posted_event a new event when a bad review
+-- is posted.
+CREATE OR REPLACE FUNCTION emit_bad_review_posted_event ()
+    RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    _user_email text;
+    _ride_name text;
+
+    _event_id text;
+    _event_type_id text;
+    _title text;
+    _description text;
+    _posted_on timestamp;
+BEGIN
+    -- get required values
+    _user_email = (SELECT email FROM users WHERE id = NEW.customer_id);
+    _ride_name = (SELECT name FROM rides WHERE id = NEW.ride_id);
+
+    -- create variables for the event insert
+    -- see: https://stackoverflow.com/a/21327318
+    _event_id = (SELECT md5(random()::text || clock_timestamp()::text)::uuid);
+    _event_type_id = (SELECT id FROM event_types WHERE event_type = 'System');
+    _title = 'Bad review posted';
+    _description = CONCAT('Rating of ', NEW.rating, ' by user ', _user_email, ' - ', 'For ride "', _ride_name, '"');
+    _posted_on = NOW();
+
+    -- insert event
+    INSERT INTO events (id, event_type_id, title, description, posted_on)
+        VALUES (_event_id, _event_type_id, _title, _description, _posted_on);
+
+    RETURN NEW;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
 -- emit_bad_reviews_event_when_rating_average_below creates a new event
 -- when the rating average for the ride given by NEW.ride_id is below
 -- the given threshold.
@@ -144,6 +181,16 @@ CREATE TRIGGER ride_maintenance_reopened_event
     FOR EACH ROW
     WHEN (OLD.end_datetime IS NOT NULL AND NEW.end_datetime IS NULL)
     EXECUTE FUNCTION emit_maintenance_status_event ('reopened');
+
+-- bad review posted on ride
+
+DROP TRIGGER IF EXISTS ride_bad_review_posted_event ON reviews;
+
+CREATE TRIGGER ride_bad_review_posted_event
+    AFTER INSERT OR UPDATE ON reviews
+    FOR EACH ROW
+    WHEN (NEW.rating < 3.0)
+    EXECUTE FUNCTION emit_bad_review_posted_event();
 
 -- bad reviews on ride
 
