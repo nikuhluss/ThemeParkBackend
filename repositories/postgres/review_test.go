@@ -105,7 +105,7 @@ func TestReviewStoreSucceeds(t *testing.T) {
 	userID := userIDs[0]
 	rideID := rideIDs[0]
 
-	expectedReview := models.NewReview("review--ID", 1, "review--ID--title", "review--ID--content", time.Now())
+	expectedReview := models.NewReview("review--ID", 1, "review--ID--title", "review--ID--content", time.Now().UTC())
 	expectedReview.RideID = rideID
 	expectedReview.UserID = userID
 	err := reviewRepository.Store(expectedReview)
@@ -140,7 +140,9 @@ func TestReviewUpdateSucceeds(t *testing.T) {
 		t.FailNow()
 	}
 
-	expectedReview := models.NewReview(review.ID, 2, "new title", "new content", time.Now())
+	expectedReview := models.NewReview(review.ID, 1, "new title", "new content", time.Now().UTC())
+	expectedReview.RideID = review.RideID
+	expectedReview.UserID = review.UserID
 	err = reviewRepository.Update(expectedReview)
 	if !assert.Nil(t, err) {
 		t.FailNow()
