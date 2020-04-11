@@ -16,20 +16,38 @@ import (
 // Fixtures
 // --------------------------------
 
-func setupTestReviews(db *sqlx.DB) []string {
-	reviewIDs := make([]string, 0, 3)
+func setupTestReviews(db *sqlx.DB) ([]string, []string, []string) {
+
+	customers := make([]string, 0)
+	rides := make([]string, 0)
+	reviews := make([]string, 0)
 
 	tx := db.MustBegin()
+
+	tx.MustExec("TRUNCATE TABLE users CASCADE")
+	tx.MustExec("TRUNCATE TABLE rides CASCADE")
 	tx.MustExec("TRUNCATE TABLE reviews CASCADE")
-	reviewIDs = append(reviewIDs, generator.MustInsertReview(tx))
-	reviewIDs = append(reviewIDs, generator.MustInsertReview(tx))
-	reviewIDs = append(reviewIDs, generator.MustInsertReview(tx))
+
+	customers = append(customers, generator.MustInsertCustomer(tx, "customer0@email.com", "customer0"))
+	customers = append(customers, generator.MustInsertCustomer(tx, "customer1@email.com", "customer1"))
+	customers = append(customers, generator.MustInsertCustomer(tx, "customer2@email.com", "customer2"))
+
+	rides = append(rides, generator.MustInsertRide(tx))
+	rides = append(rides, generator.MustInsertRide(tx))
+	rides = append(rides, generator.MustInsertRide(tx))
+
+	// customers[0] posted no reviews, customers[1] posted one review, etc
+	// rides[0] has no reviews, rides[1] has one review, etc
+	reviews = append(reviews, generator.MustInsertReview(tx, rides[1], customers[1], time.Now()))
+	reviews = append(reviews, generator.MustInsertReview(tx, rides[2], customers[1], time.Now()))
+	reviews = append(reviews, generator.MustInsertReview(tx, rides[2], customers[2], time.Now()))
+
 	err := tx.Commit()
 	if err != nil {
 		panic(err)
 	}
 
-	return reviewIDs
+	return customers, rides, reviews
 }
 
 // Tests
@@ -39,19 +57,20 @@ func TestReviewGetByIDSucceeds(t *testing.T) {
 	reviewRepository, db, teardown := testutil.MakeReviewRepositoryFixture()
 	defer teardown()
 
-	tests := setupTestReviews(db)
+	_, _, reviewIDs := setupTestReviews(db)
 
-	for _, reviewID := range tests {
+	for _, reviewID := range reviewIDs {
 		review, err := reviewRepository.GetByID(reviewID)
 		if !assert.Nil(t, err) {
 			t.FailNow()
 		}
 
 		assert.Equal(t, reviewID, review.ID)
-		assert.Equal(t, 1, review.Rating)
-		assert.Equal(t, reviewID+" -- title", review.Title)
-		assert.Equal(t, reviewID+" -- content", review.Content)
-		assert.Equal(t, 2, review.PostedOn)
+		assert.NotEmpty(t, review.RideID)
+		assert.NotEmpty(t, review.UserID)
+		assert.NotEmpty(t, review.Rating)
+		assert.NotEmpty(t, review.Title)
+		assert.NotEmpty(t, review.Content)
 	}
 }
 
@@ -68,21 +87,27 @@ func TestReviewFetchSucceeds(t *testing.T) {
 	reviewRepository, db, teardown := testutil.MakeReviewRepositoryFixture()
 	defer teardown()
 
-	setupTestReviews(db)
+	_, _, reviewIDs := setupTestReviews(db)
 
 	reviews, err := reviewRepository.Fetch()
 	if !assert.Nil(t, err) {
 		t.FailNow()
 	}
 
-	assert.Len(t, reviews, 3)
+	assert.Len(t, reviews, len(reviewIDs))
 }
 
 func TestReviewStoreSucceeds(t *testing.T) {
-	reviewRepository, _, teardown := testutil.MakeReviewRepositoryFixture()
+	reviewRepository, db, teardown := testutil.MakeReviewRepositoryFixture()
 	defer teardown()
 
+	userIDs, rideIDs, _ := setupTestReviews(db)
+	userID := userIDs[0]
+	rideID := rideIDs[0]
+
 	expectedReview := models.NewReview("review--ID", 1, "review--ID--title", "review--ID--content", time.Now())
+	expectedReview.RideID = rideID
+	expectedReview.UserID = userID
 	err := reviewRepository.Store(expectedReview)
 	if !assert.Nil(t, err) {
 		t.FailNow()
@@ -94,6 +119,9 @@ func TestReviewStoreSucceeds(t *testing.T) {
 	}
 
 	assert.NotNil(t, review)
+	assert.Equal(t, expectedReview.ID, review.ID)
+	assert.Equal(t, expectedReview.RideID, review.RideID)
+	assert.Equal(t, expectedReview.UserID, review.UserID)
 	assert.Equal(t, expectedReview.Rating, review.Rating)
 	assert.Equal(t, expectedReview.Title, review.Title)
 	assert.Equal(t, expectedReview.Content, review.Content)
@@ -104,8 +132,8 @@ func TestReviewUpdateSucceeds(t *testing.T) {
 	reviewRepository, db, teardown := testutil.MakeReviewRepositoryFixture()
 	defer teardown()
 
-	tests := setupTestReviews(db)
-	reviewID := tests[0]
+	_, _, reviewIDs := setupTestReviews(db)
+	reviewID := reviewIDs[0]
 
 	review, err := reviewRepository.GetByID(reviewID)
 	if !assert.Nil(t, err) {
@@ -124,6 +152,8 @@ func TestReviewUpdateSucceeds(t *testing.T) {
 	}
 
 	assert.Equal(t, expectedReview.ID, updatedReview.ID)
+	assert.Equal(t, expectedReview.RideID, updatedReview.RideID)
+	assert.Equal(t, expectedReview.UserID, updatedReview.UserID)
 	assert.Equal(t, expectedReview.Rating, updatedReview.Rating)
 	assert.Equal(t, expectedReview.Title, updatedReview.Title)
 	assert.Equal(t, expectedReview.Content, updatedReview.Content)
@@ -134,8 +164,8 @@ func TestReviewDeleteSucceeds(t *testing.T) {
 	reviewRepository, db, teardown := testutil.MakeReviewRepositoryFixture()
 	defer teardown()
 
-	tests := setupTestReviews(db)
-	reviewID := tests[0]
+	_, _, reviewIds := setupTestReviews(db)
+	reviewID := reviewIds[0]
 
 	err := reviewRepository.Delete(reviewID)
 	if !assert.Nil(t, err) {
@@ -146,8 +176,3 @@ func TestReviewDeleteSucceeds(t *testing.T) {
 	assert.Nil(t, review)
 	assert.NotNil(t, err)
 }
-
-
-
-
-
