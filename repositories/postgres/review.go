@@ -91,8 +91,6 @@ func (rr *ReviewRepository) FetchForRideSortedByDate(rideID string) ([]*models.R
 func (rr *ReviewRepository) Store(review *models.Review) error {
 	db := rr.db
 
-	fmt.Println(">", review)
-
 	insertReview, _, _ := psql.
 		Insert("reviews").
 		Columns("ID", "ride_ID", "customer_ID", "rating", "title", "content", "posted_on").
