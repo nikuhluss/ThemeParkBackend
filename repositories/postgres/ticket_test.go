@@ -76,6 +76,7 @@ func TestTicketGetByIDSucceeds(t *testing.T) {
 		assert.Greater(t, ticket.PurchasePrice, float64(0))
 		assert.True(t, beforeSetupTime.Before(ticket.PurchasedOn))
 		assert.NotEmpty(t, ticket.PurchaseReference)
+		assert.True(t, ticket.IsValid)
 	}
 }
 
@@ -170,6 +171,7 @@ func TestTicketStoreSucceeds(t *testing.T) {
 		PurchasePrice:     10,
 		PurchasedOn:       time.Now().UTC(),
 		PurchaseReference: "some-purchase-reference-id",
+		IsValid:           true,
 		Email:             email,
 	}
 

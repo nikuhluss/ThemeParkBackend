@@ -8,7 +8,13 @@ import (
 )
 
 var selectTickets = psql.
-	Select("tickets.*", "users.email", "user_details.first_name", "user_details.last_name").
+	Select(
+		"tickets.*",
+		"(DATE_TRUNC('day', tickets.purchased_on) = DATE_TRUNC('day', NOW())) AS is_valid",
+		"users.email",
+		"user_details.first_name",
+		"user_details.last_name",
+	).
 	From("tickets").
 	Join("users ON users.id = tickets.user_id").
 	LeftJoin("user_details ON user_details.user_id = tickets.user_id").

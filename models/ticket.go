@@ -12,6 +12,7 @@ type Ticket struct {
 	PurchasePrice     float64   `db:"purchase_price" json:"purchasePrice"`
 	PurchasedOn       time.Time `db:"purchased_on" json:"purchasedOn"`
 	PurchaseReference string    `db:"purchase_reference" json:"purchaseReference"`
+	IsValid           bool      `db:"is_valid" json:"isValid"`
 
 	Email     string     `json:"email"`
 	FirstName NullString `db:"first_name" json:"firstName"`
