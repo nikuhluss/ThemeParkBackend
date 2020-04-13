@@ -110,11 +110,9 @@ func InsertEmployee(execer Execer, username, email, roleID string) (string, erro
 	return ID, nil
 }
 
-// InsertUserDetails inserts random user details for the given user.
-func InsertUserDetails(execer Execer, userID string, genderID string) error {
-
-	firstName := gofakeit.FirstName()
-	lastName := gofakeit.LastName()
+// InsertUserDetailsWithName inserts user details for the given user using the
+// given first name and last name. Other details are random.
+func InsertUserDetailsWithName(execer Execer, userID, genderID, firstName, lastName string) error {
 	dateOfBirth := gofakeit.DateRange(year1970, year1970.Add(time.Hour*24*365*10))
 	phone := gofakeit.Phone()
 	address := gofakeit.Address().Street
@@ -130,6 +128,13 @@ func InsertUserDetails(execer Execer, userID string, genderID string) error {
 	}
 
 	return nil
+}
+
+// InsertUserDetails inserts random user details for the given user.
+func InsertUserDetails(execer Execer, userID string, genderID string) error {
+	firstName := gofakeit.FirstName()
+	lastName := gofakeit.LastName()
+	return InsertUserDetailsWithName(execer, userID, genderID, firstName, lastName)
 }
 
 // MustInsertGender is like InsertGender but panics on error.

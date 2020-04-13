@@ -6,18 +6,9 @@ import (
 	"github.com/brianvoe/gofakeit/v4"
 )
 
-// InsertRideWithID inserts a new ride using the given ID. Note that the
-// other fields of the ride use the same ID but with an added suffix. E.g.
-//
-// name: <ID>--name
-// description: <ID>--description
-// ...
-//
-// Non-string fields are filled with incremental values starting with 1.
-func InsertRideWithID(execer Execer, ID string) (string, error) {
-
-	nameTemplate := fmt.Sprintf("%s - ###", gofakeit.BeerName())
-	name := gofakeit.Numerify(nameTemplate)
+// InsertRideWithName inserts a ride with the given name and ID.
+func InsertRideWithName(execer Execer, name string) (string, error) {
+	ID := gofakeit.UUID()
 	description := gofakeit.Sentence(16)
 	minAge := 1
 	minHeight := 2
@@ -35,17 +26,19 @@ func InsertRideWithID(execer Execer, ID string) (string, error) {
 	}
 
 	return ID, nil
+
 }
 
-// InsertRide is similar to InsertRideWithID but generates the ID instead.
+// InsertRide is similar to InsertRideWithName but generates the name instead.
 func InsertRide(execer Execer) (string, error) {
-	ID := gofakeit.UUID()
-	return InsertRideWithID(execer, ID)
+	nameTemplate := fmt.Sprintf("%s - ###", gofakeit.BeerName())
+	name := gofakeit.Numerify(nameTemplate)
+	return InsertRideWithName(execer, name)
 }
 
-// MustInsertRideWithID is similar to InsertRideWithID but panics on error.
-func MustInsertRideWithID(mustExecer MustExecer, ID string) string {
-	return MustInsert(InsertRideWithID(&AsExecer{mustExecer}, ID))
+// MustInsertRideWithName is similar to InsertRideWithID but panics on error.
+func MustInsertRideWithName(mustExecer MustExecer, name string) string {
+	return MustInsert(InsertRideWithName(&AsExecer{mustExecer}, name))
 }
 
 // MustInsertRide is similar to InsertRide but panics on error.

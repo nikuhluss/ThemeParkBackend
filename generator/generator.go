@@ -151,10 +151,42 @@ func (i *Inserter) DoInsert() error {
 
 	// eventTypes := []string{eventTypeRainout}
 
+	// Team
+
+	fmt.Println("Inserting team...")
+	i.execer.Exec("TRUNCATE TABLE users CASCADE")
+
+	mainCustomers := []struct {
+		username  string
+		genderID  string
+		firstName string
+		lastName  string
+	}{
+		{"uramamur", genderFemale, "Uma", "Ramamurthy"},
+		{"amicula", genderFemale, "Adina", "Micula"},
+		{"rshah", genderFemale, "Ruchi", "Shah"},
+		{"drivas", genderMale, "Daniel Enrique", "Rivas Sanchez"},
+		{"nscott", genderMale, "Nicholas", "Scott"},
+		{"bmorales", genderMale, "Brendan", "Morales"},
+		{"jnguyen", genderMale, "Justin", "Nguyen"},
+		{"cgibbs", genderMale, "Cole", "Gibbs"},
+	}
+
+	for _, user := range mainCustomers {
+		userID, err := InsertCustomer(i.execer, user.username, fmt.Sprintf("%s@email.com", user.username))
+		if err != nil {
+			return err
+		}
+
+		err = InsertUserDetailsWithName(i.execer, userID, user.genderID, user.firstName, user.lastName)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Customers
 
 	fmt.Println("Inserting customers...")
-	i.execer.Exec("TRUNCATE TABLE users CASCADE")
 
 	totalCustomers := 100
 	customers := make([]string, 0, totalCustomers)
@@ -211,18 +243,30 @@ func (i *Inserter) DoInsert() error {
 	}
 
 	// Rides
+	// see: https://en.wikipedia.org/wiki/List_of_amusement_rides
 
 	fmt.Println("Inserting rides...")
 	i.execer.Exec("TRUNCATE TABLE rides CASCADE")
 
-	totalRides := 10
-	rides := make([]string, 0, totalRides)
-	for idx := 0; idx < totalRides; idx++ {
-		rideID, err := InsertRide(i.execer)
+	rideNames := []string{
+		"Balloon Race",
+		"Bumper Cars",
+		"Carousel",
+		"Caterpillar",
+		"Evolution",
+		"Freefall",
+		"Gravitron",
+		"Pirate Ship",
+		"Roller coaster",
+		"Teacups",
+	}
+
+	rides := make([]string, 0, len(rideNames))
+	for _, rname := range rideNames {
+		rideID, err := InsertRideWithName(i.execer, rname)
 		if err != nil {
 			return err
 		}
-
 		rides = append(rides, rideID)
 	}
 
