@@ -94,6 +94,7 @@ func (tu *TicketUsecaseImpl) Store(ctx context.Context, ticket *models.Ticket) e
 
 	ticket.ID = uuid
 	ticket.PurchasedOn = time.Now().UTC()
+	ticket.IsValid = true
 	cleanTicket(ticket)
 	err = validateTicket(ticket)
 	if err != nil {
