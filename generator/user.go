@@ -92,12 +92,22 @@ func InsertEmployee(execer Execer, username, email, roleID string) (string, erro
 	VALUES ($1, $2, $3, $4, $5, $6)
 	`
 
+	customerInsertQuery := `
+	INSERT INTO customers (user_id)
+	VALUES ($1)
+	`
+
 	employeeInsertQuery := `
 	INSERT INTO employees (ID, user_ID, role_ID)
 	VALUES ($1, $2, $3)
 	`
 
 	_, err := execer.Exec(userInsertQuery, ID, username, email, "", passwordHash, registeredOn)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = execer.Exec(customerInsertQuery, ID)
 	if err != nil {
 		return "", err
 	}

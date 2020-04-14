@@ -209,11 +209,11 @@ func (ur *UserRepository) Store(user *models.User) error {
 			if err != nil {
 				return fmt.Errorf("insertEmployee: %s", err)
 			}
-		} else {
-			_, err := tx.Exec(insertCustomer, user.ID)
-			if err != nil {
-				return fmt.Errorf("insertCustomer: %s", err)
-			}
+		}
+
+		_, err := tx.Exec(insertCustomer, user.ID)
+		if err != nil {
+			return fmt.Errorf("insertCustomer: %s", err)
 		}
 	}
 
