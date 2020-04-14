@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	"os"
 
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -48,8 +49,25 @@ func NewDatabaseConnection(config *DatabaseConnectionConfig) (*sqlx.DB, error) {
 	return db, nil
 }
 
-// NewDatabaseConnectionFromEnv is similar to NewDatabaseConnection but grabs
-// the required values from the environment.
-func NewDatabaseConnectionFromEnv() (*sqlx.DB, error) {
-	return nil, nil
+// NewDatabaseConnectionDokku returns a new *sqlx.DB instance connected
+// to a postgres database in Dokku.
+func NewDatabaseConnectionDokku(config *DatabaseConnectionConfig) (*sqlx.DB, error) {
+	EnvName := "DATABASE_URL"
+
+	databaseURL := os.Getenv(EnvName)
+	if len(databaseURL) <= 0 {
+		return nil, fmt.Errorf("environment variable '%s' not found. Make sure the app is linked (dokku postgres:link)", EnvName)
+	}
+
+	dataSourceName := fmt.Sprintf(
+		"host=%s dbname=%s sslmode=disable search_path=%s",
+		databaseURL, config.Database, config.Schema,
+	)
+
+	db, err := sqlx.Connect("pgx", dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

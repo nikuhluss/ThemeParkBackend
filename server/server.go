@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -34,14 +36,23 @@ func notImplemented(c echo.Context) error {
 }
 
 // Start starts and HTTP server.
-func Start(address string, testing bool) error {
+func Start(address string, testing, dokku bool) error {
 
 	e := echo.New()
 
 	// database
 
+	var db *sqlx.DB
+	var err error
+
 	dbconfig := testutil.NewDatabaseConnectionConfig()
-	db, err := testutil.NewDatabaseConnection(dbconfig)
+
+	if dokku {
+		db, err = testutil.NewDatabaseConnectionDokku(dbconfig)
+	} else {
+		db, err = testutil.NewDatabaseConnection(dbconfig)
+	}
+
 	if err != nil {
 		return err
 	}

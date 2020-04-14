@@ -5,11 +5,17 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
 	testing = false
 )
+
+func init() {
+	viper.AutomaticEnv()
+	rootCmd.PersistentFlags().BoolVarP(&testing, "testing", "t", false, "set testing flag")
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "backend",
@@ -17,10 +23,6 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		serverCmd.Run(cmd, args)
 	},
-}
-
-func init() {
-	rootCmd.PersistentFlags().BoolVarP(&testing, "testing", "t", false, "set testing flag")
 }
 
 // Execute executes the root cmd.
