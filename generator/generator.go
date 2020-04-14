@@ -156,7 +156,7 @@ func (i *Inserter) DoInsert() error {
 	fmt.Println("Inserting team...")
 	i.execer.Exec("TRUNCATE TABLE users CASCADE")
 
-	mainCustomers := []struct {
+	mainEmployees := []struct {
 		username  string
 		genderID  string
 		firstName string
@@ -172,8 +172,8 @@ func (i *Inserter) DoInsert() error {
 		{"cgibbs", genderMale, "Cole", "Gibbs"},
 	}
 
-	for _, user := range mainCustomers {
-		userID, err := InsertCustomer(i.execer, user.username, fmt.Sprintf("%s@email.com", user.username))
+	for _, user := range mainEmployees {
+		userID, err := InsertEmployee(i.execer, user.username, fmt.Sprintf("%s@email.com", user.username), roleSupervisor)
 		if err != nil {
 			return err
 		}
