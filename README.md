@@ -98,6 +98,10 @@ go run main.go generate
 docker-compose exec postgres psql -U postgres -d testdb -f /ddl/triggers.sql
 ```
 
+#### Dokku setup
+
+TBD
+
 #### Running tests
 
 On the root folder of this project:

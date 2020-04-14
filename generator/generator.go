@@ -307,7 +307,7 @@ func (i *Inserter) DoInsert() error {
 
 	// Rainouts
 
-	fmt.Println("Insert rainouts...")
+	fmt.Println("Inserting rainouts...")
 	i.execer.Exec("TRUNCATE TABLE events CASCADE")
 	_, err = i.doInsertRainouts(eventTypeRainout)
 	if err != nil {

@@ -10,11 +10,13 @@ import (
 
 var (
 	testing = false
+	dokku   = false
 )
 
 func init() {
 	viper.AutomaticEnv()
 	rootCmd.PersistentFlags().BoolVarP(&testing, "testing", "t", false, "set testing flag")
+	rootCmd.PersistentFlags().BoolVar(&dokku, "dokku", false, "set dokku flag")
 }
 
 var rootCmd = &cobra.Command{

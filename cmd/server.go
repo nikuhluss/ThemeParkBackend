@@ -10,17 +10,11 @@ import (
 	"gitlab.com/uh-spring-2020/cosc-3380-team-14/backend/server"
 )
 
-var (
-	dokku bool
-)
-
 func init() {
 	rootCmd.AddCommand(serverCmd)
 
 	serverCmd.Flags().IntP("port", "p", 5000, "the port to use when starting the HTTP server")
 	viper.BindPFlag("port", serverCmd.Flags().Lookup("port"))
-
-	serverCmd.Flags().BoolVar(&dokku, "dokku", false, "set dokku flag")
 }
 
 var serverCmd = &cobra.Command{
