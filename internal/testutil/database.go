@@ -59,12 +59,8 @@ func NewDatabaseConnectionDokku(config *DatabaseConnectionConfig) (*sqlx.DB, err
 		return nil, fmt.Errorf("environment variable '%s' not found. Make sure the app is linked (dokku postgres:link)", EnvName)
 	}
 
-	dataSourceName := fmt.Sprintf(
-		"host=%s dbname=%s sslmode=disable search_path=%s",
-		databaseURL, config.Database, config.Schema,
-	)
-
-	db, err := sqlx.Connect("pgx", dataSourceName)
+	finalURL := fmt.Sprintf("%s?currentSchema=%s", databaseURL, config.Schema)
+	db, err := sqlx.Connect("pgx", finalURL)
 	if err != nil {
 		return nil, err
 	}
