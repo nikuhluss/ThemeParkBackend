@@ -26,6 +26,6 @@ WHERE 1=1
 	AND COALESCE(tickets_sold.year_month, maintenance_costs.year_month) >= DATE_TRUNC('month', '{{.start}}'::timestamptz)
 {{ end }}
 {{ if isSet "end" }}
-	AND COALESCE(tickets_sold.year_month, maintenance_costs.year_month) <= DATE_TRUNC('month', '{{.end}}'::timestamptz + '1 month'::interval)
+	AND COALESCE(tickets_sold.year_month, maintenance_costs.year_month) <= DATE_TRUNC('month', '{{.end}}'::timestamptz)
 {{ end }}
 ORDER BY year DESC, month DESC
