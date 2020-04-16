@@ -50,12 +50,12 @@ func (lh *LoginHandler) Login(c echo.Context) error {
 
 	user, err := lh.userUsecase.GetByEmail(ctx, credentials.Login)
 	if err != nil {
-		return c.JSONPretty(http.StatusNotFound, ResponseError{err.Error()}, Indent)
+		return c.JSONPretty(http.StatusUnauthorized, ResponseError{err.Error()}, Indent)
 	}
 
 	key, err := lh.keyAuth.Login(ctx, user, credentials.Password)
 	if err != nil {
-		return c.JSONPretty(http.StatusBadRequest, ResponseError{err.Error()}, Indent)
+		return c.JSONPretty(http.StatusUnauthorized, ResponseError{err.Error()}, Indent)
 	}
 
 	return c.JSONPretty(http.StatusOK, map[string]string{"userId": user.ID, "key": key.Encode()}, Indent)
