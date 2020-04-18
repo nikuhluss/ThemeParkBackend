@@ -2,16 +2,16 @@
 
 Here's a list of folders in which you will find what you need:
 
-1. Schema: Can be found at `/ddl/schema.sql`.
+1. **Schema**: Can be found at `/ddl/schema.sql`.
 
-2. Triggers: Can all be found at `/ddl/triggers.sql`. Included triggers take
+2. **Triggers**: Can all be found at `/ddl/triggers.sql`. Included triggers take
 care of listening and emitting events for maintenance status changes, and bad
 reviews.
 
-3. Queries for CRUD operations: Check the non-test files at `/repositories/postgres/*.go`.
+3. **Queries for CRUD operations**: Check the non-test files at `/repositories/postgres/*.go`.
 For example, `/repositories/postgres/ride.go` contains all the CRUD operations for rides.
 
-4. Queries for reports: Check the files at `/reports/*.read.sql`.
+4. **Queries for reports**: Check the files at `/reports/*.read.sql`.
 
 ----
 
