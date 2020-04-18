@@ -1,6 +1,6 @@
 ## Note to professor and TA(s)
 
-Here's a list of folders on which you will find what you need:
+Here's a list of folders in which you will find what you need:
 
 1. Schema: Can be found at `/ddl/schema.sql`.
 
