@@ -1,3 +1,20 @@
+## Note to professor and TA(s)
+
+Here's a list of folders on which you will find what you need:
+
+1. Schema: Can be found at `/ddl/schema.sql`.
+
+2. Triggers: Can all be found at `/ddl/triggers.sql`. Included triggers take
+care of listening and emitting events for maintenance status changes, and bad
+reviews.
+
+3. Queries for CRUD operations: Check the non-test files at `/repositories/postgres/*.go`.
+For example, `/repositories/postgres/ride.go` contains all the CRUD operations for rides.
+
+4. Queries for reports: Check the files at `/reports/*.read.sql`.
+
+----
+
 ## Development
 
 ### Architecture
@@ -13,14 +30,18 @@ links for **reference** only, as we don't follow them exactly:
 
 ### Folder structure
 
-- `/handlers`: Contains the HTTP handlers for echo.
+**Note**: Folders that are not too important were skipped.
 
 - `/generator`: Containst the script and functions for generator mock data.
+
+- `/handlers`: Contains the HTTP handlers for echo.
 
 - `/internal`: Contains code that we use internally (not part of the public API).
 
 - `/models`: Contains the base entities/structures that serve as the building
 blocks of our application.
+
+- `/reports`: Contains the SQL files that generate our reports.
 
 - `/repositories`: Contains the interfaces for interacting with the data-store.
 Note that these interfaces define how to *Create*, *Read*, *Update*, and
@@ -52,14 +73,19 @@ rule. For example:
 [pgx]: https://github.com/JackC/pgx
 [squirrel]: https://github.com/Masterminds/squirrel
 [testify/assert]: https://github.com/stretchr/testify
+[prest]: https://github.com/prest/prest
 
 - [echo][echo]: Web micro-framework for our REST/presentation layer.
 - [sqlx][sqlx]: Database extensions for Go's standard library.
 - [pgx][pgx]: Postgres database driver for Go's standard library.
-- [squirrel][squirrel]: Re-usable SQL generation.
+- [squirrel][squirrel]: Re-usable SQL builder.
 - [testify/assert]: Assertions framework for our tests.
+- [prest]: App that takes care of serving our reports.
 
 ### Testing
+
+If you want to run the backend locally you will need to go though the database
+setup, after which you need to start the HTTP server.
 
 #### Database teardown
 
