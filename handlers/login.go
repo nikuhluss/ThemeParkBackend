@@ -45,7 +45,7 @@ func (lh *LoginHandler) Login(c echo.Context) error {
 	credentials.Login = strings.TrimSpace(credentials.Login)
 	credentials.Password = strings.TrimSpace(credentials.Password)
 	if len(credentials.Login) <= 0 || len(credentials.Password) <= 0 {
-		return c.JSONPretty(http.StatusBadRequest, ResponseError{"please provided both login and password"}, Indent)
+		return c.JSONPretty(http.StatusBadRequest, ResponseError{"please provide both login and password"}, Indent)
 	}
 
 	user, err := lh.userUsecase.GetByEmail(ctx, credentials.Login)
