@@ -16,3 +16,5 @@ docker run -it --rm postgres $psql -c'CREATE SCHEMA theme_park'
 docker run -it --rm -v "$DDLDIR:/ddl" postgres $psql -f /ddl/schema.sql
 
 go run main.go --dokku generate
+
+docker run -it --rm -v "$DDLDIR:/ddl" postgres $psql -f /ddl/triggers.sql
